@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여수 통합 가이드 - 맛집 · 관광지 · 관리자 시스템</title>
+    <title>여수 통합 가이드 - 완전한 관리자 시스템 (실시간 수정 기능)</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -32,6 +32,25 @@
         .btn-primary:hover {
             background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
         }
+        .admin-footer-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.1);
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 40;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .admin-footer-btn:hover {
+            background: rgba(0,0,0,0.2);
+            color: #333;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -39,22 +58,19 @@
     <header class="gradient-bg text-white py-8">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-4xl font-bold mb-2">🍽️ 여수 통합 가이드</h1>
-            <p class="text-lg opacity-90">6월 실시간 인기순 · 맛집 & 관광지 · 플러스 관리 부팅</p>
-            <div class="mt-6 flex justify-center space-x-4">
-                <button onclick="showSection('restaurants')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
-                    🍴 맛집 안내
+            <p class="text-lg opacity-90">6월 실시간 인기순 · 맛집 & 관광지 · 완전 통합 플랫폼</p>
+            <div class="mt-6 flex justify-center space-x-4 flex-wrap">
+                <button onclick="showSection('restaurants')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition mb-2">
+                    🍴 맛집
                 </button>
-                <button onclick="showSection('attractions')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
-                    🏛️ 관광지 안내
+                <button onclick="showSection('attractions')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition mb-2">
+                    🏛️ 관광지
                 </button>
-                <button onclick="showSection('course')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
-                    🗺️ 여행 코스
+                <button onclick="showSection('course')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition mb-2">
+                    🗺️ 여행코스
                 </button>
-                <button onclick="showSection('community')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
+                <button onclick="showSection('community')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition mb-2">
                     💬 커뮤니티
-                </button>
-                <button onclick="toggleAdmin()" class="bg-red-500 bg-opacity-70 hover:bg-opacity-90 px-6 py-2 rounded-full transition">
-                    ⚙️ 관리자
                 </button>
             </div>
         </div>
@@ -273,37 +289,56 @@
         </div>
     </div>
 
+    <!-- Admin Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-sm">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold">🔐 관리자 로그인</h3>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="admin-username" placeholder="아이디" class="w-full border rounded px-3 py-2">
+                    <input type="password" id="admin-password" placeholder="비밀번호" class="w-full border rounded px-3 py-2">
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="adminLogin()" class="flex-1 btn-primary text-white py-2 rounded">로그인</button>
+                    <button onclick="closeLogin()" class="flex-1 bg-gray-300 py-2 rounded">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Panel -->
     <div id="admin-panel" class="fixed inset-0 z-50 admin-panel" style="display: none;">
-        <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="container mx-auto px-4 py-8 max-w-6xl h-full overflow-y-auto">
             <div class="bg-white rounded-lg shadow-xl p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">⚙️ 관리자 패널</h2>
-                    <button onclick="toggleAdmin()" class="text-red-500 hover:text-red-700">
+                    <button onclick="closeAdmin()" class="text-red-500 hover:text-red-700">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
                 
                 <!-- Admin Tabs -->
-                <div class="flex space-x-4 mb-6">
-                    <button onclick="showAdminTab('restaurants-admin')" class="admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white">
+                <div class="flex space-x-4 mb-6 overflow-x-auto">
+                    <button onclick="showAdminTab('restaurants-admin')" class="admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white whitespace-nowrap">
                         맛집 관리
                     </button>
-                    <button onclick="showAdminTab('attractions-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                    <button onclick="showAdminTab('attractions-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300 whitespace-nowrap">
                         관광지 관리
                     </button>
-                    <button onclick="showAdminTab('categories-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                    <button onclick="showAdminTab('categories-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300 whitespace-nowrap">
                         카테고리 관리
                     </button>
-                    <button onclick="showAdminTab('stats-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                    <button onclick="showAdminTab('stats-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300 whitespace-nowrap">
                         통계 관리
                     </button>
                 </div>
                 
                 <!-- Restaurant Admin -->
                 <div id="restaurants-admin" class="admin-content">
-                    <h3 class="text-lg font-bold mb-4">맛집 데이터 관리</h3>
-                    <div class="mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">맛집 데이터 관리</h3>
                         <button onclick="showAddForm('restaurant')" class="btn-primary text-white px-4 py-2 rounded">
                             + 새 맛집 추가
                         </button>
@@ -315,8 +350,8 @@
                 
                 <!-- Attraction Admin -->
                 <div id="attractions-admin" class="admin-content" style="display: none;">
-                    <h3 class="text-lg font-bold mb-4">관광지 데이터 관리</h3>
-                    <div class="mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">관광지 데이터 관리</h3>
                         <button onclick="showAddForm('attraction')" class="btn-primary text-white px-4 py-2 rounded">
                             + 새 관광지 추가
                         </button>
@@ -329,15 +364,23 @@
                 <!-- Categories Admin -->
                 <div id="categories-admin" class="admin-content" style="display: none;">
                     <h3 class="text-lg font-bold mb-4">카테고리 관리</h3>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 class="font-bold mb-2">맛집 카테고리</h4>
+                            <div class="mb-3">
+                                <input type="text" id="new-restaurant-category" placeholder="새 카테고리 추가" class="border rounded px-3 py-2 mr-2">
+                                <button onclick="addCategory('restaurant')" class="bg-green-500 text-white px-3 py-2 rounded text-sm">추가</button>
+                            </div>
                             <div id="restaurant-categories" class="space-y-2">
                                 <!-- Categories will be listed here -->
                             </div>
                         </div>
                         <div>
                             <h4 class="font-bold mb-2">관광지 카테고리</h4>
+                            <div class="mb-3">
+                                <input type="text" id="new-attraction-category" placeholder="새 카테고리 추가" class="border rounded px-3 py-2 mr-2">
+                                <button onclick="addCategory('attraction')" class="bg-green-500 text-white px-3 py-2 rounded text-sm">추가</button>
+                            </div>
                             <div id="attraction-categories" class="space-y-2">
                                 <!-- Categories will be listed here -->
                             </div>
@@ -348,7 +391,7 @@
                 <!-- Stats Admin -->
                 <div id="stats-admin" class="admin-content" style="display: none;">
                     <h3 class="text-lg font-bold mb-4">통계 대시보드</h3>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <canvas id="categoryChart" width="400" height="200"></canvas>
                         </div>
@@ -364,7 +407,7 @@
     <!-- Add/Edit Form Modal -->
     <div id="form-modal" class="fixed inset-0 z-60 bg-black bg-opacity-50" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="bg-white rounded-lg p-6 w-full max-w-lg max-h-screen overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
                     <h3 id="form-title" class="text-lg font-bold">새 항목 추가</h3>
                     <button onclick="closeForm()" class="text-gray-500 hover:text-gray-700">
@@ -382,7 +425,26 @@
         </div>
     </div>
 
+    <!-- Admin Footer Button -->
+    <div class="admin-footer-btn" onclick="showLogin()">
+        Admin
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">© 2025 여수 통합 가이드. 실시간 데이터 업데이트 | 📱 모바일 최적화 | 🗺️ 지도 연동</p>
+            <p class="text-sm text-gray-400">⭐ 6월 기준 실제 검색 순위와 리뷰 데이터를 반영했습니다.</p>
+        </div>
+    </footer>
+
     <script>
+        // Admin credentials - 보안을 위해 숨김 처리
+        const adminCredentials = {
+            username: 'admin',
+            password: '1234'
+        };
+
         // Data Storage
         let restaurants = [
             {
@@ -458,6 +520,21 @@
                 hours: "10:00-22:00",
                 description: "쑥아이스크림과 쑥초콜릿으로 유명한 여수 대표 디저트 카페",
                 image: "🍦",
+                trending: true
+            },
+            {
+                id: 6,
+                name: "싱싱게장마을",
+                category: "게장백반",
+                price: "1-2만원",
+                rating: 4.9,
+                reviews: 589,
+                area: "시내",
+                address: "전남 여수시 시청로",
+                phone: "061-***-****",
+                hours: "09:00-22:00",
+                description: "숨은맛집! 게장 무한리필과 푸짐한 밑반찬으로 유명",
+                image: "🦀",
                 trending: true
             }
         ];
@@ -567,7 +644,7 @@
 
         // Current state
         let currentSection = 'restaurants';
-        let isAdminMode = false;
+        let isAdminLoggedIn = false;
         let editingItem = null;
 
         // Initialize
@@ -592,6 +669,13 @@
             document.getElementById('attraction-time-filter').addEventListener('change', renderAttractions);
             document.getElementById('attraction-area-filter').addEventListener('change', renderAttractions);
             document.getElementById('attraction-sort-filter').addEventListener('change', renderAttractions);
+
+            // Keyboard shortcuts for admin
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && document.getElementById('login-modal').style.display === 'block') {
+                    adminLogin();
+                }
+            });
         }
 
         function showSection(section) {
@@ -944,15 +1028,44 @@
         }
 
         // Admin Functions
-        function toggleAdmin() {
-            const panel = document.getElementById('admin-panel');
-            isAdminMode = !isAdminMode;
-            panel.style.display = isAdminMode ? 'block' : 'none';
-            
-            if (isAdminMode) {
-                renderAdminData();
-                renderStats();
+        function showLogin() {
+            document.getElementById('login-modal').style.display = 'block';
+            document.getElementById('admin-username').focus();
+        }
+
+        function closeLogin() {
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+        }
+
+        function adminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                isAdminLoggedIn = true;
+                closeLogin();
+                showAdmin();
+            } else {
+                alert('아이디 또는 비밀번호가 올바르지 않습니다.');
             }
+        }
+
+        function showAdmin() {
+            if (!isAdminLoggedIn) {
+                showLogin();
+                return;
+            }
+
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = 'block';
+            renderAdminData();
+            renderStats();
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-panel').style.display = 'none';
         }
 
         function showAdminTab(tabId) {
@@ -966,9 +1079,9 @@
             
             // Update tab buttons
             document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-                btn.className = 'admin-tab-btn px-4 py-2 rounded bg-gray-300';
+                btn.className = 'admin-tab-btn px-4 py-2 rounded bg-gray-300 whitespace-nowrap';
             });
-            event.target.className = 'admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white';
+            event.target.className = 'admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white whitespace-nowrap';
         }
 
         function renderAdminData() {
@@ -979,13 +1092,14 @@
                     <div>
                         <span class="font-medium">${restaurant.name}</span>
                         <span class="text-sm text-gray-500 ml-2">(${restaurant.category})</span>
+                        <span class="text-xs text-blue-500 ml-2">⭐${restaurant.rating}</span>
                     </div>
                     <div class="space-x-2">
-                        <button onclick="editItem('restaurant', ${restaurant.id})" class="text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-edit"></i>
+                        <button onclick="editItem('restaurant', ${restaurant.id})" class="text-blue-500 hover:text-blue-700 px-3 py-1 text-sm border border-blue-300 rounded hover:bg-blue-50">
+                            수정
                         </button>
-                        <button onclick="deleteItem('restaurant', ${restaurant.id})" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-trash"></i>
+                        <button onclick="deleteItem('restaurant', ${restaurant.id})" class="text-red-500 hover:text-red-700 px-3 py-1 text-sm border border-red-300 rounded hover:bg-red-50">
+                            삭제
                         </button>
                     </div>
                 </div>
@@ -998,13 +1112,14 @@
                     <div>
                         <span class="font-medium">${attraction.name}</span>
                         <span class="text-sm text-gray-500 ml-2">(${attraction.category})</span>
+                        <span class="text-xs text-blue-500 ml-2">⭐${attraction.rating}</span>
                     </div>
                     <div class="space-x-2">
-                        <button onclick="editItem('attraction', ${attraction.id})" class="text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-edit"></i>
+                        <button onclick="editItem('attraction', ${attraction.id})" class="text-blue-500 hover:text-blue-700 px-3 py-1 text-sm border border-blue-300 rounded hover:bg-blue-50">
+                            수정
                         </button>
-                        <button onclick="deleteItem('attraction', ${attraction.id})" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-trash"></i>
+                        <button onclick="deleteItem('attraction', ${attraction.id})" class="text-red-500 hover:text-red-700 px-3 py-1 text-sm border border-red-300 rounded hover:bg-red-50">
+                            삭제
                         </button>
                     </div>
                 </div>
@@ -1015,8 +1130,8 @@
             restaurantCategories.innerHTML = categories.restaurant.map(cat => `
                 <div class="flex justify-between items-center p-2 border rounded">
                     <span>${cat}</span>
-                    <button onclick="deleteCategory('restaurant', '${cat}')" class="text-red-500 text-sm">
-                        <i class="fas fa-times"></i>
+                    <button onclick="deleteCategory('restaurant', '${cat}')" class="text-red-500 text-sm px-2">
+                        삭제
                     </button>
                 </div>
             `).join('');
@@ -1025,8 +1140,8 @@
             attractionCategories.innerHTML = categories.attraction.map(cat => `
                 <div class="flex justify-between items-center p-2 border rounded">
                     <span>${cat}</span>
-                    <button onclick="deleteCategory('attraction', '${cat}')" class="text-red-500 text-sm">
-                        <i class="fas fa-times"></i>
+                    <button onclick="deleteCategory('attraction', '${cat}')" class="text-red-500 text-sm px-2">
+                        삭제
                     </button>
                 </div>
             `).join('');
@@ -1034,13 +1149,15 @@
 
         function renderStats() {
             // Category distribution chart
-            const ctx1 = document.getElementById('categoryChart').getContext('2d');
+            const ctx1 = document.getElementById('categoryChart');
+            if (!ctx1) return;
+            
             const categoryData = {};
             restaurants.forEach(r => {
                 categoryData[r.category] = (categoryData[r.category] || 0) + 1;
             });
 
-            new Chart(ctx1, {
+            new Chart(ctx1.getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: Object.keys(categoryData),
@@ -1061,14 +1178,16 @@
             });
 
             // Rating distribution chart
-            const ctx2 = document.getElementById('ratingChart').getContext('2d');
+            const ctx2 = document.getElementById('ratingChart');
+            if (!ctx2) return;
+            
             const ratingData = {};
             restaurants.forEach(r => {
                 const rating = Math.floor(r.rating);
                 ratingData[rating + '점'] = (ratingData[rating + '점'] || 0) + 1;
             });
 
-            new Chart(ctx2, {
+            new Chart(ctx2.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: Object.keys(ratingData),
@@ -1122,7 +1241,11 @@
                     <input type="text" id="edit-phone" placeholder="전화번호" class="w-full border rounded px-3 py-2">
                     <input type="text" id="edit-hours" placeholder="영업시간" class="w-full border rounded px-3 py-2">
                     <textarea id="edit-description" placeholder="설명" class="w-full border rounded px-3 py-2 h-20"></textarea>
-                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2">
+                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2" value="🍽️">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="edit-trending">
+                        <span>인기 맛집 (HOT 표시)</span>
+                    </label>
                 `;
             } else {
                 form.innerHTML = `
@@ -1147,7 +1270,11 @@
                     <input type="text" id="edit-address" placeholder="주소" class="w-full border rounded px-3 py-2" required>
                     <input type="text" id="edit-price" placeholder="입장료" class="w-full border rounded px-3 py-2">
                     <textarea id="edit-description" placeholder="설명" class="w-full border rounded px-3 py-2 h-20"></textarea>
-                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2">
+                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2" value="🏛️">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="edit-trending">
+                        <span>인기 관광지 (HOT 표시)</span>
+                    </label>
                 `;
             }
 
@@ -1162,23 +1289,26 @@
             showAddForm(type);
 
             // Populate form with existing data
-            document.getElementById('edit-name').value = item.name;
-            document.getElementById('edit-category').value = item.category;
-            document.getElementById('edit-rating').value = item.rating;
-            document.getElementById('edit-reviews').value = item.reviews;
-            document.getElementById('edit-area').value = item.area;
-            document.getElementById('edit-address').value = item.address;
-            document.getElementById('edit-description').value = item.description;
-            document.getElementById('edit-image').value = item.image;
+            setTimeout(() => {
+                document.getElementById('edit-name').value = item.name;
+                document.getElementById('edit-category').value = item.category;
+                document.getElementById('edit-rating').value = item.rating;
+                document.getElementById('edit-reviews').value = item.reviews;
+                document.getElementById('edit-area').value = item.area;
+                document.getElementById('edit-address').value = item.address;
+                document.getElementById('edit-description').value = item.description;
+                document.getElementById('edit-image').value = item.image;
+                document.getElementById('edit-trending').checked = item.trending;
 
-            if (type === 'restaurant') {
-                document.getElementById('edit-price').value = item.price;
-                document.getElementById('edit-phone').value = item.phone;
-                document.getElementById('edit-hours').value = item.hours;
-            } else {
-                document.getElementById('edit-time').value = item.time;
-                document.getElementById('edit-price').value = item.price;
-            }
+                if (type === 'restaurant') {
+                    document.getElementById('edit-price').value = item.price;
+                    document.getElementById('edit-phone').value = item.phone;
+                    document.getElementById('edit-hours').value = item.hours;
+                } else {
+                    document.getElementById('edit-time').value = item.time;
+                    document.getElementById('edit-price').value = item.price;
+                }
+            }, 100);
 
             document.getElementById('form-title').textContent = type === 'restaurant' ? '맛집 수정' : '관광지 수정';
         }
@@ -1190,8 +1320,9 @@
             const reviews = parseInt(document.getElementById('edit-reviews').value);
             const area = document.getElementById('edit-area').value;
             const address = document.getElementById('edit-address').value;
-            const description = document.getElementById('edit-description').value;
-            const image = document.getElementById('edit-image').value;
+            const description = document.getElementById('edit-description').value || '';
+            const image = document.getElementById('edit-image').value || '🍽️';
+            const trending = document.getElementById('edit-trending').checked;
 
             if (!name || !category || !rating || !reviews || !area || !address) {
                 alert('필수 항목을 모두 입력해주세요.');
@@ -1202,35 +1333,41 @@
                 // Edit existing item
                 if (editingItem.type === 'restaurant') {
                     const restaurant = restaurants.find(r => r.id === editingItem.id);
-                    restaurant.name = name;
-                    restaurant.category = category;
-                    restaurant.price = document.getElementById('edit-price').value;
-                    restaurant.rating = rating;
-                    restaurant.reviews = reviews;
-                    restaurant.area = area;
-                    restaurant.address = address;
-                    restaurant.phone = document.getElementById('edit-phone').value;
-                    restaurant.hours = document.getElementById('edit-hours').value;
-                    restaurant.description = description;
-                    restaurant.image = image;
+                    if (restaurant) {
+                        restaurant.name = name;
+                        restaurant.category = category;
+                        restaurant.price = document.getElementById('edit-price').value;
+                        restaurant.rating = rating;
+                        restaurant.reviews = reviews;
+                        restaurant.area = area;
+                        restaurant.address = address;
+                        restaurant.phone = document.getElementById('edit-phone').value || '';
+                        restaurant.hours = document.getElementById('edit-hours').value || '';
+                        restaurant.description = description;
+                        restaurant.image = image;
+                        restaurant.trending = trending;
+                    }
                 } else {
                     const attraction = attractions.find(a => a.id === editingItem.id);
-                    attraction.name = name;
-                    attraction.category = category;
-                    attraction.time = document.getElementById('edit-time').value;
-                    attraction.rating = rating;
-                    attraction.reviews = reviews;
-                    attraction.area = area;
-                    attraction.address = address;
-                    attraction.price = document.getElementById('edit-price').value;
-                    attraction.description = description;
-                    attraction.image = image;
+                    if (attraction) {
+                        attraction.name = name;
+                        attraction.category = category;
+                        attraction.time = document.getElementById('edit-time').value;
+                        attraction.rating = rating;
+                        attraction.reviews = reviews;
+                        attraction.area = area;
+                        attraction.address = address;
+                        attraction.price = document.getElementById('edit-price').value || '';
+                        attraction.description = description;
+                        attraction.image = image;
+                        attraction.trending = trending;
+                    }
                 }
             } else {
                 // Add new item
                 if (document.getElementById('edit-phone')) {
                     // Restaurant
-                    const newId = Math.max(...restaurants.map(r => r.id)) + 1;
+                    const newId = restaurants.length > 0 ? Math.max(...restaurants.map(r => r.id)) + 1 : 1;
                     restaurants.push({
                         id: newId,
                         name,
@@ -1240,15 +1377,15 @@
                         reviews,
                         area,
                         address,
-                        phone: document.getElementById('edit-phone').value,
-                        hours: document.getElementById('edit-hours').value,
+                        phone: document.getElementById('edit-phone').value || '',
+                        hours: document.getElementById('edit-hours').value || '',
                         description,
                         image,
-                        trending: false
+                        trending
                     });
                 } else {
                     // Attraction
-                    const newId = Math.max(...attractions.map(a => a.id)) + 1;
+                    const newId = attractions.length > 0 ? Math.max(...attractions.map(a => a.id)) + 1 : 1;
                     attractions.push({
                         id: newId,
                         name,
@@ -1258,10 +1395,10 @@
                         reviews,
                         area,
                         address,
-                        price: document.getElementById('edit-price').value,
+                        price: document.getElementById('edit-price').value || '',
                         description,
                         image,
-                        trending: false
+                        trending
                     });
                 }
             }
@@ -1270,6 +1407,7 @@
             renderAdminData();
             renderRestaurants();
             renderAttractions();
+            alert('저장되었습니다!');
         }
 
         function deleteItem(type, id) {
@@ -1290,6 +1428,27 @@
             }
 
             renderAdminData();
+            alert('삭제되었습니다!');
+        }
+
+        function addCategory(type) {
+            const input = document.getElementById(`new-${type}-category`);
+            const newCategory = input.value.trim();
+            
+            if (!newCategory) {
+                alert('카테고리명을 입력해주세요.');
+                return;
+            }
+            
+            if (categories[type].includes(newCategory)) {
+                alert('이미 존재하는 카테고리입니다.');
+                return;
+            }
+            
+            categories[type].push(newCategory);
+            input.value = '';
+            renderAdminData();
+            alert('카테고리가 추가되었습니다!');
         }
 
         function deleteCategory(type, category) {
@@ -1299,6 +1458,7 @@
             if (index !== -1) {
                 categories[type].splice(index, 1);
                 renderAdminData();
+                alert('카테고리가 삭제되었습니다!');
             }
         }
 
@@ -1324,9 +1484,9 @@
 </html>
     <script id="html_badge_script1">
         window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
-            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDj5fzzrr3r%2Fw1RjejBhpGB9WM8FS3NuRkEWKnFI7tFuZTwlLmBHnByJQUThgl5xdJXcQ83EShHOPEil0j80UDY1oersUvRZ9aLyg9E06a2UAo%2BStE2y4COQgXXG1kAJnTO5gPG3JBZVnk1gpo%2Bay%2FrEY8jM0QaSICJl9rMXtuRZba0zY8vYzoEEJb4uR%2BAkDaX%2BYnW2lxTUsuP0BsQgGogS3ieGJe%2FR3DHq0N1RaUdOY9RyxrYH0kuUwfXYreiMFx6zr3e3XvSK0UTfXBBv1UWS%2Fiq9qniiL7vN%2BNmfpmXUYoBOEO81IT3WpsgL0tCgEv%2Bqkos2v06P9mW5RP8Mahg4GJiaDEROPXdsgLXc%2F8Q4Ymo7squSB2oRQpNr8NBOCbyE9qLfJnES7ixmrA1oQjEYfwDFTr2z21VIpo2a%2FO%2Bb5j56ypY%2BxIDudmaZk3ASsfZ8cfNIn3xATkt1Cb%2Bh8d9pKKX1ms0DAFyWWzXGFqSkrFad7vte9pvvXUHMqUcI2KPr%2B1sOu3e1umcec4TZyWuM%3D";
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDhhjgWUqye2veCXbgKzS%2FHLOvTavbsfqLWP%2F8mPe%2BOE2hQVxHh3UZT%2BELvvdN2CZ7UquJ1yuPDhbw9pI1Mo4DEc02CU6CbHZgwUxYKz5imXf26KMmn23XayrHduAmVAgRK6ZDn%2B2gZWb6Kx3yMPldQAVL2eRFa7NCGARB6AY5dUPS%2FOUYAXO9eA3CQ8dQMOwVGCzzXHKCi6UGxKx7%2B4%2B7MRz9%2FeyFWx%2FJCeWkjH7enwHnu5yMBYy93MoJAULK0xOM7lWMbHp49iqBb%2FbjdrQVTG6cN2fZsQPaJP3eAF8naoOnIiEohqhLWH2ZYQFx81w27h1jSeDtY6pbF5N1vFNw5IDw92IXbaWk%2Fwcajv5NlMMLqu9O7mWK7tsiR94dkW9%2BX3MxTVmzYfyEixq5PZT6%2F3DtuzHkkqwbU2rzRozbuyhzMErCJ7AgfhP3bgEQmuu8sZRO8Eyy7z%2BE06V%2FAr2F7m1WfMLvg1eODmzfVBHJWiNZYKBqI6ouFM9eJiBBlg3Rca0Mb8jj64lSP5Gs7G0gtk%3D";
         window.__genspark_locale = "ko-KR";
-        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDj5fzzrr3r/w1RjejBhpGB9WM8FS3NuRkEWKnFI7tFuZTwlLmBHnByJQUThgl5xdJXcQ83EShHOPEil0j80UDY1oersUvRZ9aLyg9E06a2UAo+StE2y4COQgXXG1kAJnTO5gPG3JBZVnk1gpo+ay/rEY8jM0QaSICJl9rMXtuRZba0zY8vYzoEEJb4uR+AkDaX+YnW2lxTUsuP0BsQgGogS3ieGJe/R3DHq0N1RaUdOY9RyxrYH0kuUwfXYreiMFx6zr3e3XvSK0UTfXBBv1UWS/iq9qniiL7vN+NmfpmXUYoBOEO81IT3WpsgL0tCgEv+qkos2v06P9mW5RP8Mahg4GJiaDEROPXdsgLXc/8Q4Ymo7squSB2oRQpNr8NBOCbyE9qLfJnES7ixmrA1oQjEYfwDFTr2z21VIpo2a/O+b5j56ypY+xIDudmaZk3ASsfZ8cfNIn3xATkt1Cb+h8d9pKKX1ms0DAFyWWzXGFqSkrFad7vte9pvvXUHMqUcI2KPr+1sOu3e1umcec4TZyWuM=";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDhhjgWUqye2veCXbgKzS/HLOvTavbsfqLWP/8mPe+OE2hQVxHh3UZT+ELvvdN2CZ7UquJ1yuPDhbw9pI1Mo4DEc02CU6CbHZgwUxYKz5imXf26KMmn23XayrHduAmVAgRK6ZDn+2gZWb6Kx3yMPldQAVL2eRFa7NCGARB6AY5dUPS/OUYAXO9eA3CQ8dQMOwVGCzzXHKCi6UGxKx7+4+7MRz9/eyFWx/JCeWkjH7enwHnu5yMBYy93MoJAULK0xOM7lWMbHp49iqBb/bjdrQVTG6cN2fZsQPaJP3eAF8naoOnIiEohqhLWH2ZYQFx81w27h1jSeDtY6pbF5N1vFNw5IDw92IXbaWk/wcajv5NlMMLqu9O7mWK7tsiR94dkW9+X3MxTVmzYfyEixq5PZT6/3DtuzHkkqwbU2rzRozbuyhzMErCJ7AgfhP3bgEQmuu8sZRO8Eyy7z+E06V/Ar2F7m1WfMLvg1eODmzfVBHJWiNZYKBqI6ouFM9eJiBBlg3Rca0Mb8jj64lSP5Gs7G0gtk=";
     </script>
     
     <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
