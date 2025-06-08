@@ -3,77 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여수 맛집 가이드 - 카카오맵 연동 실시간 위치 서비스</title>
+    <title>여수 맛집 가이드 - 네이버 인기순 맛집 & 여행 코스 추천</title>
+    <meta name="description" content="여수 여행 필수 맛집 가이드! 네이버 검색 기준 인기 음식점들을 메뉴별 카테고리로 분류하고, 평점순 필터링, 1박2일 여행 코스 추천까지. 게장백반, 갈치조림, 해산물 전문점 완전 정리.">
+    <meta name="keywords" content="여수맛집, 여수여행, 게장백반, 갈치조림, 여수관광, 돌산갓김치, 여수카페, 맛집추천">
+    <meta property="og:title" content="여수 맛집 가이드 - 네이버 인기순 맛집 & 여행 코스 추천">
+    <meta property="og:description" content="여수 여행 필수 맛집 사이트! 메뉴별 카테고리, 평점순 필터링, 1박2일 코스 추천까지">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow">
+    
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=3f0c74fc8b3e36d64cc7aaf1e3c84ece"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; }
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            line-height: 1.6;
+        }
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .rating-star { color: #fbbf24; }
         .category-btn { transition: all 0.3s ease; }
         .category-btn.active { background: #667eea; color: white; }
-        #map { width: 100%; height: 500px; border-radius: 12px; }
-        .map-marker { 
-            background: #667eea; 
-            color: white; 
-            padding: 5px 10px; 
-            border-radius: 15px; 
-            font-size: 12px; 
+        
+        /* PDF 최적화 스타일 */
+         {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .shadow-lg { box-shadow: none !important; }
+        }
+        
+        /* 지도 대체 스타일 */
+        .map-placeholder {
+            background: linear-gradient(45deg, #f3f4f6 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f3f4f6 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f3f4f6 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            min-height: 400px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #9ca3af;
+        }
+        
+        .restaurant-marker {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 14px;
             font-weight: bold;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 커뮤니티 게시판 스타일 */
+        .post-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .post-item:hover {
+            transform: translateX(5px);
+            border-left-color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .comment-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            border-left: 3px solid #e2e8f0;
+        }
+        
+        .star-rating {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .star-rating .star {
+            cursor: pointer;
+            color: #d1d5db;
+            transition: color 0.2s;
+        }
+        
+        .star-rating .star:hover,
+        .star-rating .star.active {
+            color: #fbbf24;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .like-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .like-btn.liked {
+            color: #ef4444;
+            transform: scale(1.1);
         }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
-    <header class="gradient-bg text-white sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-3xl font-bold flex items-center">
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold mb-2">
                     <i class="fas fa-utensils mr-3"></i>
                     여수 맛집 가이드
                 </h1>
-                <nav class="hidden md:flex space-x-6">
-                    <a href="#restaurants" class="hover:text-blue-200">맛집</a>
-                    <a href="#map-section" class="hover:text-blue-200">지도</a>
-                    <a href="#course" class="hover:text-blue-200">여행코스</a>
-                    <a href="#community" class="hover:text-blue-200">커뮤니티</a>
-                </nav>
+                <p class="text-blue-100 text-lg">네이버 검색 기준 인기 맛집 & 1박2일 여행 코스 추천</p>
             </div>
         </div>
     </header>
 
-    <!-- 카카오맵 섹션 -->
+    <!-- Quick Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 no-print">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-center space-x-8 py-4">
+                <a href="#restaurants" class="text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fas fa-utensils mr-2"></i>맛집
+                </a>
+                <a href="#map-section" class="text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fas fa-map mr-2"></i>지도
+                </a>
+                <a href="#course" class="text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fas fa-route mr-2"></i>여행코스
+                </a>
+                <a href="#community" class="text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fas fa-comments mr-2"></i>커뮤니티
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 지도 섹션 -->
     <section id="map-section" class="py-8 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">🗺️ 여수 맛집 지도</h2>
+            <h2 class="text-3xl font-bold text-center mb-8">🗺️ 여수 맛집 위치 안내</h2>
             <div class="bg-white rounded-lg shadow-lg p-6">
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button onclick="showAllMarkers()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        <i class="fas fa-map-marked-alt mr-2"></i>전체 보기
-                    </button>
-                    <button onclick="filterMapByCategory('게장백반')" class="bg-blue-100 text-blue-800 px-4 py-2 rounded hover:bg-blue-200">
-                        게장백반
-                    </button>
-                    <button onclick="filterMapByCategory('갈치조림')" class="bg-orange-100 text-orange-800 px-4 py-2 rounded hover:bg-orange-200">
-                        갈치조림
-                    </button>
-                    <button onclick="filterMapByCategory('카페')" class="bg-pink-100 text-pink-800 px-4 py-2 rounded hover:bg-pink-200">
-                        카페
-                    </button>
+                
+                <!-- 지도 버튼들 -->
+                <div class="flex flex-wrap gap-3 mb-6 justify-center">
+                    <a href="https://map.naver.com/v5/search/여수%20맛집" target="_blank" 
+                       class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                        <i class="fas fa-map-marked-alt mr-2"></i>네이버지도에서 보기
+                    </a>
+                    <a href="https://www.google.com/maps/search/여수+맛집" target="_blank" 
+                       class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fab fa-google mr-2"></i>구글지도에서 보기
+                    </a>
+                    <a href="https://map.kakao.com/link/search/여수%20맛집" target="_blank" 
+                       class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors">
+                        <i class="fas fa-map mr-2"></i>카카오맵에서 보기
+                    </a>
                 </div>
-                <div id="map"></div>
-                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 class="font-bold mb-2">💡 지도 사용법</h4>
-                    <div class="text-sm text-gray-600 space-y-1">
-                        <p>• 마커를 클릭하면 식당 상세정보를 확인할 수 있습니다</p>
-                        <p>• 상단 버튼으로 카테고리별 필터링이 가능합니다</p>
-                        <p>• 지도를 드래그하여 여수 전체 맛집을 탐색해보세요</p>
+
+                <!-- 지도 대체 영역 -->
+                <div class="map-placeholder">
+                    <div class="text-center">
+                        <i class="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-600 mb-2">여수 맛집 분포도</h3>
+                        <p class="text-gray-500 mb-4">위 버튼을 클릭하여 실시간 지도에서 확인하세요</p>
+                        
+                        <!-- 맛집 마커 표시 -->
+                        <div class="mt-6">
+                            <div class="restaurant-marker bg-blue-600">🦀 로타리식당 (시내)</div>
+                            <div class="restaurant-marker bg-blue-600">🦀 꽃돌게장1번가 (봉산동)</div>
+                            <div class="restaurant-marker bg-orange-600">🐟 순이네밥상 (이순신광장)</div>
+                            <div class="restaurant-marker bg-purple-600">🌊 정다운식당 (돌산 오션뷰)</div>
+                            <div class="restaurant-marker bg-pink-600">☕ 여수당 (중앙동)</div>
+                            <div class="restaurant-marker bg-green-600">🥬 황제돌산갓김치 (돌산)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-bold mb-3 text-blue-800">💡 지도 활용 팁</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+                        <div>• 네이버지도: 가장 정확한 한국 지도 정보</div>
+                        <div>• 구글지도: 해외에서도 사용 가능</div>
+                        <div>• 카카오맵: 길찾기 및 대중교통 최적화</div>
+                        <div>• 각 식당별 상세 위치는 아래 맛집 목록 참조</div>
                     </div>
                 </div>
             </div>
@@ -81,54 +223,51 @@
     </section>
 
     <!-- Filter Section -->
-    <section class="bg-white shadow-lg py-6">
+    <section class="bg-white shadow-lg py-6 no-print">
         <div class="container mx-auto px-4">
+            <h3 class="text-xl font-bold text-center mb-4">🔍 맛집 필터링</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Category Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">메뉴 카테고리</label>
-                    <select id="categoryFilter" class="w-full p-3 border rounded-lg">
+                    <select id="categoryFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="all">전체</option>
-                        <option value="게장백반">게장백반</option>
-                        <option value="갈치조림">갈치조림</option>
-                        <option value="해산물">해산물</option>
-                        <option value="카페">카페</option>
-                        <option value="특산품">특산품</option>
+                        <option value="게장백반">🦀 게장백반</option>
+                        <option value="갈치조림">🐟 갈치조림</option>
+                        <option value="해산물">🦐 해산물</option>
+                        <option value="카페">☕ 카페</option>
+                        <option value="특산품">🥬 특산품</option>
                     </select>
                 </div>
                 
-                <!-- Price Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">가격대</label>
-                    <select id="priceFilter" class="w-full p-3 border rounded-lg">
+                    <select id="priceFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="all">전체</option>
-                        <option value="10000">1만원 이하</option>
-                        <option value="20000">1-2만원</option>
-                        <option value="30000">2-3만원</option>
-                        <option value="30001">3만원 이상</option>
+                        <option value="10000">💰 1만원 이하</option>
+                        <option value="20000">💰💰 1-2만원</option>
+                        <option value="30000">💰💰💰 2-3만원</option>
+                        <option value="30001">💰💰💰💰 3만원 이상</option>
                     </select>
                 </div>
 
-                <!-- Rating Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">평점순</label>
-                    <select id="ratingFilter" class="w-full p-3 border rounded-lg">
+                    <select id="ratingFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="all">전체</option>
-                        <option value="4.8">4.8점 이상</option>
-                        <option value="4.5">4.5점 이상</option>
-                        <option value="4.0">4.0점 이상</option>
+                        <option value="4.8">⭐⭐⭐⭐⭐ 4.8점 이상</option>
+                        <option value="4.5">⭐⭐⭐⭐ 4.5점 이상</option>
+                        <option value="4.0">⭐⭐⭐ 4.0점 이상</option>
                     </select>
                 </div>
 
-                <!-- Location Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">지역</label>
-                    <select id="locationFilter" class="w-full p-3 border rounded-lg">
+                    <select id="locationFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="all">전체</option>
-                        <option value="시내">시내</option>
-                        <option value="돌산">돌산</option>
-                        <option value="소호동">소호동</option>
-                        <option value="웅천">웅천</option>
+                        <option value="시내">🏢 시내</option>
+                        <option value="돌산">🌊 돌산</option>
+                        <option value="소호동">🏖️ 소호동</option>
+                        <option value="웅천">🚗 웅천</option>
                     </select>
                 </div>
             </div>
@@ -138,23 +277,27 @@
     <!-- Statistics Section -->
     <section class="py-8 bg-gradient-to-r from-blue-50 to-purple-50">
         <div class="container mx-auto px-4">
-            <h2 class="text-2xl font-bold text-center mb-8">여수 맛집 현황</h2>
+            <h2 class="text-2xl font-bold text-center mb-8">📊 여수 맛집 현황</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="text-center bg-white p-6 rounded-lg shadow">
-                    <div class="text-3xl font-bold text-blue-600">25+</div>
+                <div class="text-center bg-white p-6 rounded-lg shadow-lg">
+                    <div class="text-4xl font-bold text-blue-600">25+</div>
                     <div class="text-gray-600">등록 맛집</div>
+                    <i class="fas fa-utensils text-2xl text-blue-400 mt-2"></i>
                 </div>
-                <div class="text-center bg-white p-6 rounded-lg shadow">
-                    <div class="text-3xl font-bold text-green-600">4.6</div>
+                <div class="text-center bg-white p-6 rounded-lg shadow-lg">
+                    <div class="text-4xl font-bold text-green-600">4.6</div>
                     <div class="text-gray-600">평균 평점</div>
+                    <i class="fas fa-star text-2xl text-yellow-400 mt-2"></i>
                 </div>
-                <div class="text-center bg-white p-6 rounded-lg shadow">
-                    <div class="text-3xl font-bold text-purple-600">120+</div>
+                <div class="text-center bg-white p-6 rounded-lg shadow-lg">
+                    <div class="text-4xl font-bold text-purple-600">120+</div>
                     <div class="text-gray-600">블로그 후기</div>
+                    <i class="fas fa-comment text-2xl text-purple-400 mt-2"></i>
                 </div>
-                <div class="text-center bg-white p-6 rounded-lg shadow">
-                    <div class="text-3xl font-bold text-red-600">5</div>
+                <div class="text-center bg-white p-6 rounded-lg shadow-lg">
+                    <div class="text-4xl font-bold text-red-600">5</div>
                     <div class="text-gray-600">신규 오픈</div>
+                    <i class="fas fa-plus-circle text-2xl text-red-400 mt-2"></i>
                 </div>
             </div>
         </div>
@@ -163,184 +306,413 @@
     <!-- Restaurant Cards -->
     <section id="restaurants" class="py-8">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">여수 인기 맛집</h2>
+            <h2 class="text-3xl font-bold text-center mb-8">🍽️ 여수 인기 맛집</h2>
             <div id="restaurantGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- 로타리식당 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="12000" data-rating="4.8" data-location="시내" data-id="rotary">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="12000" data-rating="4.8" data-location="시내">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">로타리식당</h3>
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">게장백반</span>
+                            <h3 class="text-xl font-bold text-blue-800">로타리식당</h3>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">게장백반</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.8점</span>
+                            <span class="text-gray-600 font-medium">4.8점</span>
+                            <span class="ml-2 text-xs text-gray-500">(구글 1위)</span>
                         </div>
-                        <p class="text-gray-600 mb-3">30년 전통 백반 전문점, 양념&간장게장 무제한</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 서교3길 2-1</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>백반 12,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>08:00 - 20:00</div>
+                        <p class="text-gray-600 mb-4">30년 전통 백반 전문점, 양념&간장게장 무제한 리필</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 서교3길 2-1</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>백반 12,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>08:00 - 20:00 (연중무휴)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-purple-500 mr-3 w-4"></i>
+                                <span>061-642-2156</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('rotary')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
-                            </button>
-                            <button onclick="showReviews('로타리식당')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/로타리식당%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('로타리식당 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 꽃돌게장1번가 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="35000" data-rating="4.7" data-location="시내" data-id="kkottol">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="35000" data-rating="4.7" data-location="시내">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">꽃돌게장1번가</h3>
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">게장백반</span>
+                            <h3 class="text-xl font-bold text-blue-800">꽃돌게장1번가</h3>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">게장백반</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.7점</span>
+                            <span class="text-gray-600 font-medium">4.7점</span>
+                            <span class="ml-2 text-xs text-gray-500">(트립어드바이저 추천)</span>
                         </div>
-                        <p class="text-gray-600 mb-3">여수 대표 꽃게정식, 셀프바 운영</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 봉산2로 36</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>꽃게정식 35,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>10:00 - 21:30</div>
+                        <p class="text-gray-600 mb-4">여수 대표 꽃게정식, 셀프바 운영으로 다양한 반찬 무제한</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 봉산2로 36</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>꽃게정식 35,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>10:00 - 21:30 (브레이크 15:00-17:00)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-purple-500 mr-3 w-4"></i>
+                                <span>0507-1395-0006</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('kkottol')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
-                            </button>
-                            <button onclick="showReviews('꽃돌게장1번가')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/꽃돌게장1번가%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('꽃돌게장1번가 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 순이네밥상 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="갈치조림" data-price="15000" data-rating="4.6" data-location="시내" data-id="sooni">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="갈치조림" data-price="15000" data-rating="4.6" data-location="시내">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">순이네밥상</h3>
-                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm">갈치조림</span>
+                            <h3 class="text-xl font-bold text-orange-800">순이네밥상</h3>
+                            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">갈치조림</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.6점</span>
+                            <span class="text-gray-600 font-medium">4.6점</span>
+                            <span class="ml-2 text-xs text-gray-500">(네이버 베스트)</span>
                         </div>
-                        <p class="text-gray-600 mb-3">푸짐하고 깊은 맛의 갈치조림 정식</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 동문로 11</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>갈치조림정식 15,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>09:30 - 21:00</div>
+                        <p class="text-gray-600 mb-4">푸짐하고 깊은 맛의 갈치조림 정식, 이순신광장 근처</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 동문로 11</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>갈치조림정식 15,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>09:30 - 21:00 (둘째,넷째 수요일 휴무)</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('sooni')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
-                            </button>
-                            <button onclick="showReviews('순이네밥상')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/순이네밥상%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('순이네밥상 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 정다운식당 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="30000" data-rating="4.5" data-location="돌산" data-id="jungdaun">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="게장백반" data-price="30000" data-rating="4.5" data-location="돌산">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">정다운식당</h3>
-                            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">오션뷰</span>
+                            <h3 class="text-xl font-bold text-purple-800">정다운식당</h3>
+                            <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">오션뷰</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.5점</span>
+                            <span class="text-gray-600 font-medium">4.5점</span>
+                            <span class="ml-2 text-xs text-gray-500">(네이버 1위)</span>
                         </div>
-                        <p class="text-gray-600 mb-3">35년 전통 게장맛집, 오션뷰 대형매장</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 돌산읍 마상포길 12</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>암꽃게장정식 30,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>10:00 - 21:00</div>
+                        <p class="text-gray-600 mb-4">35년 전통 게장맛집, 돌산 오션뷰 대형매장</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 돌산읍 마상포길 12</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>암꽃게장정식 30,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>10:00 - 21:00 (목,금 21:30까지)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-purple-500 mr-3 w-4"></i>
+                                <span>0507-1349-0744</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('jungdaun')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
-                            </button>
-                            <button onclick="showReviews('정다운식당')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/정다운식당%20여수%20돌산" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('정다운식당 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 남진이네자연산갈치명가 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="갈치조림" data-price="18000" data-rating="4.4" data-location="시내" data-id="namjin">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="갈치조림" data-price="18000" data-rating="4.4" data-location="시내">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">남진이네자연산갈치명가</h3>
-                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm">갈치조림</span>
+                            <h3 class="text-lg font-bold text-orange-800">남진이네자연산갈치명가</h3>
+                            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">갈치조림</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.4점</span>
+                            <span class="text-gray-600 font-medium">4.4점</span>
                         </div>
-                        <p class="text-gray-600 mb-3">아드님이 일일이 포를 떠서 만드는 갈치조림</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 봉산동</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>갈치조림 18,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>11:00 - 20:00</div>
+                        <p class="text-gray-600 mb-4">아드님이 일일이 포를 떠서 만드는 수제 갈치조림</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 봉산동</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>갈치조림 18,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>11:00 - 20:00</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('namjin')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
-                            </button>
-                            <button onclick="showReviews('남진이네자연산갈치명가')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/남진이네자연산갈치명가%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('남진이네자연산갈치명가 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 여수당 -->
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="카페" data-price="8000" data-rating="4.3" data-location="시내" data-id="yeosudang">
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="카페" data-price="8000" data-rating="4.3" data-location="시내">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold">여수당</h3>
-                            <span class="bg-pink-100 text-pink-800 px-2 py-1 rounded text-sm">카페</span>
+                            <h3 class="text-xl font-bold text-pink-800">여수당</h3>
+                            <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">카페</span>
                         </div>
                         <div class="flex items-center mb-3">
                             <div class="flex text-yellow-400 mr-2">
                                 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                             </div>
-                            <span class="text-gray-600">4.3점</span>
+                            <span class="text-gray-600 font-medium">4.3점</span>
                         </div>
-                        <p class="text-gray-600 mb-3">쑥아이스크림, 쑥초코로 유명한 디저트카페</p>
-                        <div class="space-y-2 text-sm">
-                            <div><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>전남 여수시 중앙동</div>
-                            <div><i class="fas fa-won-sign text-green-500 mr-2"></i>쑥아이스크림 8,000원</div>
-                            <div><i class="fas fa-clock text-blue-500 mr-2"></i>10:00 - 22:00</div>
+                        <p class="text-gray-600 mb-4">쑥아이스크림, 쑥초코로 유명한 여수 명물 디저트카페</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 중앙동</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>쑥아이스크림 8,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>10:00 - 22:00</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex space-x-2">
-                            <button onclick="goToRestaurantOnMap('yeosudang')" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                                <i class="fas fa-map mr-2"></i>지도에서 보기
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/여수당%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('여수당 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
-                            <button onclick="showReviews('여수당')" class="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                                <i class="fas fa-comment mr-2"></i>후기
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 황제돌산갓김치 -->
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="특산품" data-price="10000" data-rating="4.5" data-location="돌산">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-green-800">황제돌산갓김치</h3>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">특산품</span>
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <div class="flex text-yellow-400 mr-2">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 font-medium">4.5점</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">프리미엄 여수 돌산갓김치, 택배 주문 가능</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 돌산읍 우두리 698-3</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>갓김치 1kg 10,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>08:00 - 19:00</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-purple-500 mr-3 w-4"></i>
+                                <span>061-644-1147</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/황제돌산갓김치%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('황제돌산갓김치 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 삼학집 -->
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="갈치조림" data-price="16000" data-rating="4.5" data-location="시내">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-orange-800">삼학집</h3>
+                            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">갈치조림</span>
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <div class="flex text-yellow-400 mr-2">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 font-medium">4.5점</span>
+                            <span class="ml-2 text-xs text-gray-500">(6시내고향 출연)</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">입맛 살려주는 매콤새콤한 양념, 여수 수정동 명물</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 수정동</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>갈치조림 16,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>11:00 - 21:00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/삼학집%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('삼학집 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 모이핀 -->
+                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover" data-category="카페" data-price="12000" data-rating="4.4" data-location="시내">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-pink-800">모이핀</h3>
+                            <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">오션뷰카페</span>
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <div class="flex text-yellow-400 mr-2">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 font-medium">4.4점</span>
+                            <span class="ml-2 text-xs text-gray-500">(다이닝코드 1위)</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">여수 대표 오션뷰 디저트카페, 인스타 핫플레이스</p>
+                        
+                        <div class="space-y-3 text-sm mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
+                                <span>전남 여수시 해양공원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
+                                <span>디저트 8,000원~12,000원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
+                                <span>09:00 - 22:00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="https://map.naver.com/v5/search/모이핀%20여수" target="_blank" 
+                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
+                                <i class="fas fa-map mr-1"></i>네이버지도
+                            </a>
+                            <button onclick="showReviews('모이핀 여수')" 
+                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-comment mr-1"></i>후기보기
                             </button>
                         </div>
                     </div>
@@ -353,13 +725,13 @@
     <!-- 1박2일 코스 추천 -->
     <section id="course" class="py-12 bg-gradient-to-r from-purple-50 to-blue-50">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">1박2일 맛집 코스 추천</h2>
+            <h2 class="text-3xl font-bold text-center mb-8">🗓️ 1박2일 맛집 코스 추천</h2>
             
             <!-- 코스 선택 -->
             <div class="flex justify-center mb-8">
-                <div class="bg-white rounded-lg p-4 shadow-lg">
-                    <label class="block text-sm font-medium mb-2">여행 스타일 선택</label>
-                    <select id="courseType" class="p-3 border rounded-lg" onchange="updateCourse()">
+                <div class="bg-white rounded-lg p-6 shadow-lg max-w-md w-full">
+                    <label class="block text-lg font-bold mb-3 text-center">🎯 여행 스타일 선택</label>
+                    <select id="courseType" class="w-full p-4 border-2 rounded-lg text-center font-medium" onchange="updateCourse()">
                         <option value="standard">표준 코스 (조식1, 점심2, 저녁1)</option>
                         <option value="premium">프리미엄 코스 (고급 맛집 위주)</option>
                         <option value="budget">가성비 코스 (저렴한 맛집 위주)</option>
@@ -370,104 +742,208 @@
 
             <!-- 표준 코스 -->
             <div id="standardCourse" class="course-content">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    
                     <!-- DAY 1 -->
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-center text-blue-600">
-                            <i class="fas fa-sun mr-2"></i>DAY 1
-                        </h3>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div class="text-center mb-6">
+                            <h3 class="text-3xl font-bold text-blue-600 mb-2">
+                                <i class="fas fa-sun mr-3"></i>DAY 1
+                            </h3>
+                            <p class="text-gray-600">첫날 맛집 여행</p>
+                        </div>
                         
-                        <div class="space-y-6">
-                            <div class="border-l-4 border-yellow-400 pl-4">
-                                <h4 class="font-bold text-lg text-yellow-600">🌅 조식 (09:00)</h4>
-                                <div class="mt-2">
-                                    <h5 class="font-semibold">로타리식당</h5>
-                                    <p class="text-gray-600">든든한 게장백반으로 하루를 시작</p>
-                                    <span class="text-green-600 font-medium">12,000원</span>
-                                    <button onclick="goToRestaurantOnMap('rotary')" class="ml-2 text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-map-marker-alt"></i> 지도보기
-                                    </button>
+                        <div class="space-y-8">
+                            <!-- 조식 -->
+                            <div class="border-l-4 border-yellow-400 pl-6 py-4 bg-yellow-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-yellow-700">🌅 조식 (09:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-blue-800 mb-2">로타리식당</h5>
+                                    <p class="text-gray-600 mb-3">든든한 게장백반으로 하루를 시작하세요</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 12,000원
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 08:00-20:00
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/로타리식당%20여수" target="_blank" 
+                                       class="mt-3 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
                                 </div>
                             </div>
 
-                            <div class="border-l-4 border-orange-400 pl-4">
-                                <h4 class="font-bold text-lg text-orange-600">🍴 점심 (13:00)</h4>
-                                <div class="mt-2">
-                                    <h5 class="font-semibold">순이네밥상</h5>
-                                    <p class="text-gray-600">푸짐한 갈치조림정식</p>
-                                    <span class="text-green-600 font-medium">15,000원</span>
-                                    <button onclick="goToRestaurantOnMap('sooni')" class="ml-2 text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-map-marker-alt"></i> 지도보기
-                                    </button>
+                            <!-- 점심 -->
+                            <div class="border-l-4 border-orange-400 pl-6 py-4 bg-orange-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-orange-700">🍴 점심 (13:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-orange-800 mb-2">순이네밥상</h5>
+                                    <p class="text-gray-600 mb-3">푸짐한 갈치조림정식으로 속까지 든든하게</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 15,000원
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 09:30-21:00
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/순이네밥상%20여수" target="_blank" 
+                                       class="mt-3 inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
                                 </div>
                             </div>
 
-                            <div class="border-l-4 border-red-400 pl-4">
-                                <h4 class="font-bold text-lg text-red-600">🌙 저녁 (18:00)</h4>
-                                <div class="mt-2">
-                                    <h5 class="font-semibold">꽃돌게장1번가</h5>
-                                    <p class="text-gray-600">여수 대표 꽃게정식</p>
-                                    <span class="text-green-600 font-medium">35,000원</span>
-                                    <button onclick="goToRestaurantOnMap('kkottol')" class="ml-2 text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-map-marker-alt"></i> 지도보기
-                                    </button>
+                            <!-- 저녁 -->
+                            <div class="border-l-4 border-red-400 pl-6 py-4 bg-red-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-red-700">🌙 저녁 (18:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-blue-800 mb-2">꽃돌게장1번가</h5>
+                                    <p class="text-gray-600 mb-3">여수 대표 꽃게정식으로 특별한 저녁을</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 35,000원
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 10:00-21:30
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/꽃돌게장1번가%20여수" target="_blank" 
+                                       class="mt-3 inline-block bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                            <h5 class="font-bold text-blue-800">DAY 1 총 비용</h5>
-                            <p class="text-2xl font-bold text-blue-600">62,000원</p>
+                        <div class="mt-8 p-6 bg-blue-100 rounded-lg text-center">
+                            <h5 class="text-xl font-bold text-blue-800 mb-2">DAY 1 총 비용</h5>
+                            <p class="text-3xl font-bold text-blue-600">62,000원</p>
+                            <p class="text-gray-600 mt-1">1인 기준, 3식</p>
                         </div>
                     </div>
 
                     <!-- DAY 2 -->
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-2xl font-bold mb-6 text-center text-green-600">
-                            <i class="fas fa-sun mr-2"></i>DAY 2
-                        </h3>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div class="text-center mb-6">
+                            <h3 class="text-3xl font-bold text-green-600 mb-2">
+                                <i class="fas fa-sun mr-3"></i>DAY 2
+                            </h3>
+                            <p class="text-gray-600">둘째날 맛집 마무리</p>
+                        </div>
                         
-                        <div class="space-y-6">
-                            <div class="border-l-4 border-orange-400 pl-4">
-                                <h4 class="font-bold text-lg text-orange-600">🍴 점심 (12:00)</h4>
-                                <div class="mt-2">
-                                    <h5 class="font-semibold">정다운식당</h5>
-                                    <p class="text-gray-600">오션뷰에서 즐기는 게장백반</p>
-                                    <span class="text-green-600 font-medium">30,000원</span>
-                                    <button onclick="goToRestaurantOnMap('jungdaun')" class="ml-2 text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-map-marker-alt"></i> 지도보기
-                                    </button>
+                        <div class="space-y-8">
+                            <!-- 점심 -->
+                            <div class="border-l-4 border-purple-400 pl-6 py-4 bg-purple-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-purple-700">🍴 점심 (12:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-purple-800 mb-2">정다운식당</h5>
+                                    <p class="text-gray-600 mb-3">돌산 오션뷰에서 즐기는 게장백반</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 30,000원
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 10:00-21:00
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/정다운식당%20여수%20돌산" target="_blank" 
+                                       class="mt-3 inline-block bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
                                 </div>
                             </div>
 
-                            <div class="border-l-4 border-pink-400 pl-4">
-                                <h4 class="font-bold text-lg text-pink-600">☕ 디저트 (15:00)</h4>
-                                <div class="mt-2">
-                                    <h5 class="font-semibold">여수당</h5>
-                                    <p class="text-gray-600">여수 명물 쑥아이스크림</p>
-                                    <span class="text-green-600 font-medium">8,000원</span>
-                                    <button onclick="goToRestaurantOnMap('yeosudang')" class="ml-2 text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-map-marker-alt"></i> 지도보기
-                                    </button>
+                            <!-- 디저트 -->
+                            <div class="border-l-4 border-pink-400 pl-6 py-4 bg-pink-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-pink-700">☕ 디저트 (15:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-pink-800 mb-2">여수당</h5>
+                                    <p class="text-gray-600 mb-3">여수 명물 쑥아이스크림으로 마무리</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 8,000원
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 10:00-22:00
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/여수당%20여수" target="_blank" 
+                                       class="mt-3 inline-block bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 특산품 -->
+                            <div class="border-l-4 border-green-400 pl-6 py-4 bg-green-50 rounded-r-lg">
+                                <div class="flex items-center mb-3">
+                                    <h4 class="text-xl font-bold text-green-700">🥬 특산품 (16:00)</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-green-800 mb-2">황제돌산갓김치</h5>
+                                    <p class="text-gray-600 mb-3">여수 대표 특산품 돌산갓김치 구매</p>
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-green-600">💰 가격:</span> 10,000원/kg
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-blue-600">⏰ 시간:</span> 08:00-19:00
+                                        </div>
+                                    </div>
+                                    <a href="https://map.naver.com/v5/search/황제돌산갓김치%20여수" target="_blank" 
+                                       class="mt-3 inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
+                                        <i class="fas fa-map-marker-alt mr-1"></i> 지도보기
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-6 p-4 bg-green-50 rounded-lg">
-                            <h5 class="font-bold text-green-800">DAY 2 총 비용</h5>
-                            <p class="text-2xl font-bold text-green-600">38,000원</p>
+                        <div class="mt-8 p-6 bg-green-100 rounded-lg text-center">
+                            <h5 class="text-xl font-bold text-green-800 mb-2">DAY 2 총 비용</h5>
+                            <p class="text-3xl font-bold text-green-600">48,000원</p>
+                            <p class="text-gray-600 mt-1">1인 기준, 점심+디저트+특산품</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-8 text-center">
-                    <div class="bg-white rounded-lg shadow-lg p-6 inline-block">
-                        <h4 class="text-xl font-bold mb-2">1박2일 총 맛집 비용</h4>
-                        <p class="text-3xl font-bold text-purple-600">100,000원</p>
-                        <p class="text-gray-600 mt-2">1인 기준, 4식 + 디저트</p>
-                        <button onclick="showCourseOnMap()" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-                            <i class="fas fa-route mr-2"></i>코스 전체 지도보기
-                        </button>
+                <!-- 총 비용 및 전체 지도 -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="text-center mb-6">
+                        <h4 class="text-2xl font-bold mb-4">🎯 1박2일 여수 맛집 총 정리</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-purple-50 p-6 rounded-lg">
+                                <div class="text-3xl font-bold text-purple-600 mb-2">110,000원</div>
+                                <div class="text-gray-600">총 맛집 비용 (1인 기준)</div>
+                            </div>
+                            <div class="bg-blue-50 p-6 rounded-lg">
+                                <div class="text-3xl font-bold text-blue-600 mb-2">5곳</div>
+                                <div class="text-gray-600">방문 맛집 수</div>
+                            </div>
+                            <div class="bg-green-50 p-6 rounded-lg">
+                                <div class="text-3xl font-bold text-green-600 mb-2">4.6점</div>
+                                <div class="text-gray-600">평균 평점</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="https://map.naver.com/v5/search/여수%20맛집%20코스" target="_blank" 
+                           class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:from-blue-600 hover:to-purple-700 transition-colors inline-block">
+                            <i class="fas fa-route mr-2"></i>전체 코스 지도에서 보기
+                        </a>
                     </div>
                 </div>
             </div>
@@ -475,351 +951,211 @@
     </section>
 
     <!-- 커뮤니티 섹션 -->
-    <section id="community" class="py-12">
+    <section id="community" class="py-12 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">맛집 커뮤니티</h2>
+            <h2 class="text-3xl font-bold text-center mb-8">💬 맛집 커뮤니티</h2>
             
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- 새로 오픈한 맛집 -->
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-xl font-bold mb-4 text-green-600">
-                        <i class="fas fa-plus-circle mr-2"></i>새로 오픈한 맛집
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">랑고스 전문점</h4>
-                            <p class="text-sm text-gray-600">전남 여수시 통제영3길 14-1</p>
-                            <span class="text-green-500 text-xs">NEW</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">용주리항아리바베큐</h4>
-                            <p class="text-sm text-gray-600">전남 여수시 화양면 소호로 58</p>
-                            <span class="text-green-500 text-xs">NEW</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">로스티아</h4>
-                            <p class="text-sm text-gray-600">돌산 오션뷰 양식당</p>
-                            <span class="text-green-500 text-xs">NEW</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- 글쓰기 버튼 -->
+            <div class="text-center mb-8">
+                <button onclick="openPostModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg text-lg font-bold hover:from-blue-600 hover:to-purple-700 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>맛집 정보 공유하기
+                </button>
+            </div>
 
-                <!-- 숨은 맛집 -->
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-xl font-bold mb-4 text-blue-600">
-                        <i class="fas fa-gem mr-2"></i>현지인 숨은맛집
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">복춘식당</h4>
-                            <p class="text-sm text-gray-600">현지인들만 아는 집밥 맛집</p>
-                            <span class="text-blue-500 text-xs">현지인 추천</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">진미꽃게탕</h4>
-                            <p class="text-sm text-gray-600">여수시청 옆 회식맛집</p>
-                            <span class="text-blue-500 text-xs">현지인 추천</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold">노을정</h4>
-                            <p class="text-sm text-gray-600">낙지 요리 전문점</p>
-                            <span class="text-blue-500 text-xs">현지인 추천</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 맛집 개선 의견 -->
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-xl font-bold mb-4 text-purple-600">
-                        <i class="fas fa-comments mr-2"></i>맛집 정보 공유
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold text-sm">❓ 질문</h4>
-                            <p class="text-sm text-gray-600">여수 게장 리필 되는 곳 어디인가요?</p>
-                            <span class="text-gray-400 text-xs">2시간 전</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold text-sm">💡 정보</h4>
-                            <p class="text-sm text-gray-600">로타리식당 주차장 정보 업데이트</p>
-                            <span class="text-gray-400 text-xs">5시간 전</span>
-                        </div>
-                        <div class="border-b pb-3">
-                            <h4 class="font-semibold text-sm">⚠️ 제보</h4>
-                            <p class="text-sm text-gray-600">순이네밥상 영업시간 변경됨</p>
-                            <span class="text-gray-400 text-xs">1일 전</span>
-                        </div>
-                    </div>
-                    <button class="w-full mt-4 bg-purple-500 text-white py-2 rounded hover:bg-purple-600">
-                        정보 공유하기
+            <!-- 카테고리 탭 -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-gray-100 rounded-lg p-1 flex space-x-1">
+                    <button onclick="filterPosts('all')" class="category-tab active px-6 py-2 rounded-lg font-medium transition-colors" data-category="all">
+                        전체
+                    </button>
+                    <button onclick="filterPosts('new')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="new">
+                        신규 오픈
+                    </button>
+                    <button onclick="filterPosts('hidden')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="hidden">
+                        숨은맛집
+                    </button>
+                    <button onclick="filterPosts('review')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="review">
+                        후기
+                    </button>
+                    <button onclick="filterPosts('question')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="question">
+                        질문
                     </button>
                 </div>
+            </div>
+
+            <!-- 게시글 목록 -->
+            <div id="postsList" class="max-w-4xl mx-auto space-y-6">
+                <!-- 게시글이 여기에 동적으로 추가됩니다 -->
+            </div>
+
+            <!-- 더보기 버튼 -->
+            <div class="text-center mt-8">
+                <button onclick="loadMorePosts()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>더 많은 게시글 보기
+                </button>
             </div>
         </div>
     </section>
 
+    <!-- 게시글 작성 모달 -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">맛집 정보 공유하기</h3>
+                <button onclick="closePostModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="postForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2">카테고리</label>
+                    <select id="postCategory" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="new">🏪 신규 오픈</option>
+                        <option value="hidden">💎 숨은맛집</option>
+                        <option value="review">📝 후기</option>
+                        <option value="question">❓ 질문</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">제목</label>
+                    <input type="text" id="postTitle" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="제목을 입력하세요" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">식당명</label>
+                    <input type="text" id="restaurantName" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="식당명을 입력하세요">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">위치</label>
+                    <input type="text" id="restaurantLocation" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="주소 또는 위치를 입력하세요">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">별점</label>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">⭐</span>
+                        <span class="star" data-rating="2">⭐</span>
+                        <span class="star" data-rating="3">⭐</span>
+                        <span class="star" data-rating="4">⭐</span>
+                        <span class="star" data-rating="5">⭐</span>
+                    </div>
+                    <input type="hidden" id="postRating" value="0">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">내용</label>
+                    <textarea id="postContent" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32" placeholder="맛집에 대한 자세한 정보를 입력하세요" required></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">작성자</label>
+                    <input type="text" id="postAuthor" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="닉네임을 입력하세요" required>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        <i class="fas fa-share mr-2"></i>게시글 등록
+                    </button>
+                    <button type="button" onclick="closePostModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        취소
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 게시글 상세 모달 -->
+    <div id="postDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">게시글 상세</h3>
+                <button onclick="closePostDetailModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div id="postDetailContent">
+                <!-- 게시글 상세 내용이 여기에 표시됩니다 -->
+            </div>
+
+            <!-- 댓글 섹션 -->
+            <div class="mt-8 border-t pt-6">
+                <h4 class="text-lg font-bold mb-4">댓글</h4>
+                
+                <!-- 댓글 작성 -->
+                <div class="mb-6">
+                    <div class="flex space-x-3">
+                        <input type="text" id="commentAuthor" class="flex-1 p-3 border rounded-lg" placeholder="닉네임">
+                        <input type="text" id="commentContent" class="flex-2 p-3 border rounded-lg" placeholder="댓글을 입력하세요">
+                        <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-comment mr-1"></i>댓글
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 댓글 목록 -->
+                <div id="commentsList">
+                    <!-- 댓글이 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8">
+    <footer class="bg-gray-800 text-white py-12">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="text-xl font-bold mb-4">여수 맛집 가이드</h3>
-                    <p class="text-gray-300">네이버 검색 기준 여수 인기 맛집과 여행 코스를 추천하는 종합 가이드 사이트입니다. 카카오맵 연동으로 더욱 편리한 맛집 탐방이 가능합니다.</p>
+                    <h3 class="text-xl font-bold mb-4">🍽️ 여수 맛집 가이드</h3>
+                    <p class="text-gray-300 leading-relaxed">네이버 검색 기준 여수 인기 맛집과 여행 코스를 추천하는 종합 가이드 사이트입니다. 실시간 지도 연동으로 더욱 편리한 맛집 탐방이 가능합니다.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold mb-4">바로가기</h4>
-                    <div class="space-y-2">
-                        <a href="#restaurants" class="block text-gray-300 hover:text-white">맛집 찾기</a>
-                        <a href="#map-section" class="block text-gray-300 hover:text-white">지도</a>
-                        <a href="#course" class="block text-gray-300 hover:text-white">여행 코스</a>
-                        <a href="#community" class="block text-gray-300 hover:text-white">커뮤니티</a>
+                    <h4 class="font-bold mb-4">🔗 바로가기</h4>
+                    <div class="space-y-3">
+                        <a href="#restaurants" class="block text-gray-300 hover:text-white transition-colors">
+                            <i class="fas fa-utensils mr-2"></i>맛집 찾기
+                        </a>
+                        <a href="#map-section" class="block text-gray-300 hover:text-white transition-colors">
+                            <i class="fas fa-map mr-2"></i>지도
+                        </a>
+                        <a href="#course" class="block text-gray-300 hover:text-white transition-colors">
+                            <i class="fas fa-route mr-2"></i>여행 코스
+                        </a>
+                        <a href="#community" class="block text-gray-300 hover:text-white transition-colors">
+                            <i class="fas fa-comments mr-2"></i>커뮤니티
+                        </a>
                     </div>
                 </div>
                 <div>
-                    <h4 class="font-bold mb-4">문의하기</h4>
-                    <div class="space-y-2 text-gray-300">
-                        <p><i class="fas fa-envelope mr-2"></i>yeosu.restaurant@example.com</p>
+                    <h4 class="font-bold mb-4">📞 문의하기</h4>
+                    <div class="space-y-3 text-gray-300">
+                        <p><i class="fas fa-envelope mr-2"></i>info@yeosu-matjip.com</p>
                         <p><i class="fas fa-phone mr-2"></i>061-123-4567</p>
                         <p><i class="fas fa-map-marker-alt mr-2"></i>전남 여수시</p>
+                    </div>
+                    <div class="mt-4 space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white text-xl transition-colors"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-xl transition-colors"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-xl transition-colors"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-                <p>&copy; 2025 여수 맛집 가이드. All rights reserved. Powered by Kakao Map API</p>
+                <p>&copy; 2025 여수 맛집 가이드. All rights reserved. 📱 모바일 최적화 | 🗺️ 실시간 지도 연동</p>
+                <p class="mt-2 text-sm">⭐ 평점 및 후기는 네이버, 구글, 다이닝코드 기준입니다.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // 카카오맵 API 설정
-        let map;
-        let markers = [];
-        let currentInfoWindow = null;
-
-        // 식당 데이터
-        const restaurants = {
-            'rotary': {
-                name: '로타리식당',
-                category: '게장백반',
-                price: '12,000원',
-                rating: '4.8',
-                coords: [34.7604, 127.6622],
-                address: '전남 여수시 서교3길 2-1',
-                time: '08:00 - 20:00',
-                description: '30년 전통 백반 전문점, 양념&간장게장 무제한'
-            },
-            'kkottol': {
-                name: '꽃돌게장1번가',
-                category: '게장백반',
-                price: '35,000원',
-                rating: '4.7',
-                coords: [34.7506, 127.6618],
-                address: '전남 여수시 봉산2로 36',
-                time: '10:00 - 21:30',
-                description: '여수 대표 꽃게정식, 셀프바 운영'
-            },
-            'sooni': {
-                name: '순이네밥상',
-                category: '갈치조림',
-                price: '15,000원',
-                rating: '4.6',
-                coords: [34.7461, 127.6647],
-                address: '전남 여수시 동문로 11',
-                time: '09:30 - 21:00',
-                description: '푸짐하고 깊은 맛의 갈치조림 정식'
-            },
-            'jungdaun': {
-                name: '정다운식당',
-                category: '게장백반',
-                price: '30,000원',
-                rating: '4.5',
-                coords: [34.6858, 127.7689],
-                address: '전남 여수시 돌산읍 마상포길 12',
-                time: '10:00 - 21:00',
-                description: '35년 전통 게장맛집, 오션뷰 대형매장'
-            },
-            'namjin': {
-                name: '남진이네자연산갈치명가',
-                category: '갈치조림',
-                price: '18,000원',
-                rating: '4.4',
-                coords: [34.7520, 127.6590],
-                address: '전남 여수시 봉산동',
-                time: '11:00 - 20:00',
-                description: '아드님이 일일이 포를 떠서 만드는 갈치조림'
-            },
-            'yeosudang': {
-                name: '여수당',
-                category: '카페',
-                price: '8,000원',
-                rating: '4.3',
-                coords: [34.7600, 127.6650],
-                address: '전남 여수시 중앙동',
-                time: '10:00 - 22:00',
-                description: '쑥아이스크림, 쑥초코로 유명한 디저트카페'
-            }
-        };
-
-        // 지도 초기화
-        function initMap() {
-            const mapContainer = document.getElementById('map');
-            const mapOption = {
-                center: new kakao.maps.LatLng(34.7604, 127.6622), // 여수 중심
-                level: 7
-            };
-
-            map = new kakao.maps.Map(mapContainer, mapOption);
-            
-            // 모든 마커 표시
-            showAllMarkers();
-        }
-
-        // 모든 마커 표시
-        function showAllMarkers() {
-            // 기존 마커 제거
-            clearMarkers();
-            
-            Object.keys(restaurants).forEach(id => {
-                const restaurant = restaurants[id];
-                addMarker(restaurant, id);
-            });
-        }
-
-        // 마커 추가
-        function addMarker(restaurant, id) {
-            const markerPosition = new kakao.maps.LatLng(restaurant.coords[0], restaurant.coords[1]);
-            
-            // 카테고리별 마커 색상
-            let markerColor = '#667eea';
-            if (restaurant.category === '갈치조림') markerColor = '#f97316';
-            else if (restaurant.category === '카페') markerColor = '#ec4899';
-            
-            const marker = new kakao.maps.Marker({
-                position: markerPosition,
-                map: map
-            });
-
-            // 인포윈도우 내용
-            const infoContent = `
-                <div style="padding:10px; min-width:200px;">
-                    <h4 style="margin:0 0 5px 0; font-weight:bold; color:${markerColor};">${restaurant.name}</h4>
-                    <p style="margin:2px 0; font-size:12px; color:#666;">${restaurant.description}</p>
-                    <p style="margin:2px 0; font-size:12px;"><i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> ${restaurant.address}</p>
-                    <p style="margin:2px 0; font-size:12px;"><i class="fas fa-won-sign" style="color:#10b981;"></i> ${restaurant.price}</p>
-                    <p style="margin:2px 0; font-size:12px;"><i class="fas fa-clock" style="color:#3b82f6;"></i> ${restaurant.time}</p>
-                    <p style="margin:5px 0 0 0; font-size:12px;">
-                        <span style="color:#fbbf24;">★</span> ${restaurant.rating}점
-                        <span style="background:${markerColor}; color:white; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:5px;">${restaurant.category}</span>
-                    </p>
-                </div>
-            `;
-
-            const infoWindow = new kakao.maps.InfoWindow({
-                content: infoContent
-            });
-
-            // 마커 클릭 이벤트
-            kakao.maps.event.addListener(marker, 'click', function() {
-                // 기존 인포윈도우 닫기
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
-                }
-                
-                infoWindow.open(map, marker);
-                currentInfoWindow = infoWindow;
-                
-                // 해당 위치로 지도 중심 이동
-                map.setCenter(markerPosition);
-                map.setLevel(4);
-            });
-
-            markers.push({marker, infoWindow, category: restaurant.category, id});
-        }
-
-        // 기존 마커 제거
-        function clearMarkers() {
-            markers.forEach(item => {
-                item.marker.setMap(null);
-                if (item.infoWindow) {
-                    item.infoWindow.close();
-                }
-            });
-            markers = [];
-        }
-
-        // 카테고리별 필터
-        function filterMapByCategory(category) {
-            clearMarkers();
-            
-            Object.keys(restaurants).forEach(id => {
-                const restaurant = restaurants[id];
-                if (restaurant.category === category) {
-                    addMarker(restaurant, id);
-                }
-            });
-
-            // 지도 범위 조정
-            if (markers.length > 0) {
-                const bounds = new kakao.maps.LatLngBounds();
-                markers.forEach(item => {
-                    bounds.extend(item.marker.getPosition());
-                });
-                map.setBounds(bounds);
-            }
-        }
-
-        // 특정 식당으로 이동
-        function goToRestaurantOnMap(restaurantId) {
-            const restaurant = restaurants[restaurantId];
-            if (restaurant) {
-                // 지도 섹션으로 스크롤
-                document.getElementById('map-section').scrollIntoView({behavior: 'smooth'});
-                
-                // 해당 위치로 이동
-                const position = new kakao.maps.LatLng(restaurant.coords[0], restaurant.coords[1]);
-                map.setCenter(position);
-                map.setLevel(3);
-                
-                // 해당 마커의 인포윈도우 열기
-                setTimeout(() => {
-                    const markerItem = markers.find(item => item.id === restaurantId);
-                    if (markerItem) {
-                        // 기존 인포윈도우 닫기
-                        if (currentInfoWindow) {
-                            currentInfoWindow.close();
-                        }
-                        markerItem.infoWindow.open(map, markerItem.marker);
-                        currentInfoWindow = markerItem.infoWindow;
-                    }
-                }, 500);
-            }
-        }
-
-        // 코스 전체를 지도에 표시
-        function showCourseOnMap() {
-            // 지도 섹션으로 스크롤
-            document.getElementById('map-section').scrollIntoView({behavior: 'smooth'});
-            
-            // 코스 식당들만 표시
-            const courseRestaurants = ['rotary', 'sooni', 'kkottol', 'jungdaun', 'yeosudang'];
-            clearMarkers();
-            
-            courseRestaurants.forEach(id => {
-                const restaurant = restaurants[id];
-                if (restaurant) {
-                    addMarker(restaurant, id);
-                }
-            });
-
-            // 모든 마커가 보이도록 지도 범위 조정
-            setTimeout(() => {
-                const bounds = new kakao.maps.LatLngBounds();
-                markers.forEach(item => {
-                    bounds.extend(item.marker.getPosition());
-                });
-                map.setBounds(bounds);
-            }, 100);
-        }
+        // 전역 변수
+        let currentPostId = null;
+        let posts = [];
+        let currentCategory = 'all';
 
         // 필터링 기능
         function filterRestaurants() {
@@ -870,7 +1206,7 @@
         
         // 후기 보기 함수
         function showReviews(restaurantName) {
-            const searchQuery = encodeURIComponent(restaurantName + ' 여수 맛집 후기');
+            const searchQuery = encodeURIComponent(restaurantName + ' 후기');
             const url = `https://search.naver.com/search.naver?query=${searchQuery}`;
             window.open(url, '_blank');
         }
@@ -880,6 +1216,372 @@
             const courseType = document.getElementById('courseType').value;
             console.log('Selected course:', courseType);
         }
+
+        // 커뮤니티 게시판 기능
+        function initializeCommunity() {
+            // 로컬스토리지에서 게시글 로드
+            const savedPosts = localStorage.getItem('yeosu_posts');
+            if (savedPosts) {
+                posts = JSON.parse(savedPosts);
+            } else {
+                // 초기 샘플 게시글
+                posts = [
+                    {
+                        id: 1,
+                        category: 'new',
+                        title: '랑고스 전문점 새로 오픈했어요!',
+                        restaurantName: '랑고스 전문점',
+                        location: '전남 여수시 통제영3길 14-1',
+                        content: '호떡 같은 비주얼의 헝가리 전통 음식 전문점이 새로 오픈했습니다. 달콤하고 쫄깃한 식감이 정말 좋아요!',
+                        author: '맛집탐험가',
+                        rating: 4,
+                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                        likes: 15,
+                        comments: [
+                            { author: '여수토박이', content: '오 신기한 음식이네요! 가봐야겠어요', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        category: 'hidden',
+                        title: '복춘식당 진짜 숨은맛집 인정!',
+                        restaurantName: '복춘식당',
+                        location: '여수시 소호동',
+                        content: '현지인들만 아는 집밥 맛집입니다. 성시경의 먹을텐데에도 나왔는데 정말 집밥 같아요. 할머니가 직접 해주시는 반찬들이 일품입니다.',
+                        author: '현지인123',
+                        rating: 5,
+                        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
+                        likes: 28,
+                        comments: [
+                            { author: '여행자', content: '정보 감사합니다! 꼭 가봐야겠어요', createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+                            { author: '맛집러버', content: '저도 다녀왔는데 정말 맛있어요', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        category: 'question',
+                        title: '여수 게장 리필 되는 곳 어디인가요?',
+                        restaurantName: '',
+                        location: '',
+                        content: '여수 여행 계획 중인데 게장 무제한 리필 되는 곳 추천해주세요! 로타리식당이 유명하다는데 다른 곳도 있나요?',
+                        author: '여수여행예정',
+                        rating: 0,
+                        createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+                        likes: 12,
+                        comments: [
+                            { author: '현지인', content: '로타리식당, 꽃돌게장1번가가 유명해요', createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000) }
+                        ]
+                    }
+                ];
+                savePosts();
+            }
+            
+            renderPosts();
+            initializeStarRating();
+        }
+
+        function savePosts() {
+            localStorage.setItem('yeosu_posts', JSON.stringify(posts));
+        }
+
+        function renderPosts() {
+            const postsList = document.getElementById('postsList');
+            const filteredPosts = currentCategory === 'all' ? posts : posts.filter(post => post.category === currentCategory);
+            
+            postsList.innerHTML = filteredPosts.map(post => `
+                <div class="post-item bg-white rounded-lg shadow-lg p-6 cursor-pointer" onclick="openPostDetail(${post.id})">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="category-badge px-3 py-1 rounded-full text-sm font-medium ${getCategoryClass(post.category)}">
+                                ${getCategoryIcon(post.category)} ${getCategoryName(post.category)}
+                            </span>
+                            ${post.rating > 0 ? `<div class="flex text-yellow-400">${'⭐'.repeat(post.rating)}</div>` : ''}
+                        </div>
+                        <span class="text-gray-500 text-sm">${formatDate(post.createdAt)}</span>
+                    </div>
+                    
+                    <h3 class="text-lg font-bold mb-2 text-gray-800">${post.title}</h3>
+                    
+                    ${post.restaurantName ? `<p class="text-blue-600 font-medium mb-1">🏪 ${post.restaurantName}</p>` : ''}
+                    ${post.location ? `<p class="text-gray-600 text-sm mb-2">📍 ${post.location}</p>` : ''}
+                    
+                    <p class="text-gray-700 mb-4 line-clamp-3">${post.content}</p>
+                    
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>👤 ${post.author}</span>
+                        <div class="flex space-x-4">
+                            <span onclick="event.stopPropagation(); toggleLike(${post.id})" class="like-btn cursor-pointer hover:text-red-500 transition-colors ${isLiked(post.id) ? 'liked text-red-500' : ''}">
+                                <i class="fas fa-heart mr-1"></i>${post.likes}
+                            </span>
+                            <span><i class="fas fa-comment mr-1"></i>${post.comments.length}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryClass(category) {
+            const classes = {
+                'new': 'bg-green-100 text-green-800',
+                'hidden': 'bg-blue-100 text-blue-800',
+                'review': 'bg-purple-100 text-purple-800',
+                'question': 'bg-yellow-100 text-yellow-800'
+            };
+            return classes[category] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'new': '🏪',
+                'hidden': '💎',
+                'review': '📝',
+                'question': '❓'
+            };
+            return icons[category] || '📌';
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'new': '신규 오픈',
+                'hidden': '숨은맛집',
+                'review': '후기',
+                'question': '질문'
+            };
+            return names[category] || '기타';
+        }
+
+        function formatDate(date) {
+            const now = new Date();
+            const diffMs = now - new Date(date);
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffHours < 1) return '방금 전';
+            if (diffHours < 24) return `${diffHours}시간 전`;
+            if (diffDays < 7) return `${diffDays}일 전`;
+            return new Date(date).toLocaleDateString();
+        }
+
+        function filterPosts(category) {
+            currentCategory = category;
+            
+            // 탭 활성화 상태 변경
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            renderPosts();
+        }
+
+        function openPostModal() {
+            document.getElementById('postModal').classList.add('show');
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').classList.remove('show');
+            document.getElementById('postForm').reset();
+            resetStarRating();
+        }
+
+        function openPostDetail(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            currentPostId = postId;
+            
+            const content = `
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="category-badge px-3 py-1 rounded-full text-sm font-medium ${getCategoryClass(post.category)}">
+                            ${getCategoryIcon(post.category)} ${getCategoryName(post.category)}
+                        </span>
+                        ${post.rating > 0 ? `<div class="flex text-yellow-400">${'⭐'.repeat(post.rating)}</div>` : ''}
+                        <span class="text-gray-500 text-sm">${formatDate(post.createdAt)}</span>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-800">${post.title}</h2>
+                    
+                    ${post.restaurantName ? `<p class="text-blue-600 font-medium text-lg">🏪 ${post.restaurantName}</p>` : ''}
+                    ${post.location ? `<p class="text-gray-600">📍 ${post.location}</p>` : ''}
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700 leading-relaxed whitespace-pre-line">${post.content}</p>
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <span class="text-gray-600">👤 ${post.author}</span>
+                        <div class="flex space-x-4">
+                            <button onclick="toggleLike(${post.id})" class="like-btn px-4 py-2 rounded-lg transition-colors ${isLiked(post.id) ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'}">
+                                <i class="fas fa-heart mr-1"></i>${post.likes}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('postDetailContent').innerHTML = content;
+            renderComments(post.comments);
+            document.getElementById('postDetailModal').classList.add('show');
+        }
+
+        function closePostDetailModal() {
+            document.getElementById('postDetailModal').classList.remove('show');
+            currentPostId = null;
+        }
+
+        function renderComments(comments) {
+            const commentsList = document.getElementById('commentsList');
+            
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<p class="text-gray-500 text-center py-4">아직 댓글이 없습니다.</p>';
+                return;
+            }
+            
+            commentsList.innerHTML = comments.map(comment => `
+                <div class="comment-item">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-medium text-gray-800">${comment.author}</span>
+                        <span class="text-gray-500 text-sm">${formatDate(comment.createdAt)}</span>
+                    </div>
+                    <p class="text-gray-700">${comment.content}</p>
+                </div>
+            `).join('');
+        }
+
+        function addComment() {
+            const author = document.getElementById('commentAuthor').value.trim();
+            const content = document.getElementById('commentContent').value.trim();
+            
+            if (!author || !content) {
+                alert('닉네임과 댓글 내용을 모두 입력해주세요.');
+                return;
+            }
+            
+            const post = posts.find(p => p.id === currentPostId);
+            if (!post) return;
+            
+            const newComment = {
+                author,
+                content,
+                createdAt: new Date()
+            };
+            
+            post.comments.push(newComment);
+            savePosts();
+            renderComments(post.comments);
+            renderPosts(); // 댓글 수 업데이트
+            
+            // 입력 필드 초기화
+            document.getElementById('commentAuthor').value = '';
+            document.getElementById('commentContent').value = '';
+        }
+
+        function toggleLike(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            const likedPosts = JSON.parse(localStorage.getItem('yeosu_liked_posts') || '[]');
+            const isCurrentlyLiked = likedPosts.includes(postId);
+            
+            if (isCurrentlyLiked) {
+                post.likes--;
+                const index = likedPosts.indexOf(postId);
+                likedPosts.splice(index, 1);
+            } else {
+                post.likes++;
+                likedPosts.push(postId);
+            }
+            
+            localStorage.setItem('yeosu_liked_posts', JSON.stringify(likedPosts));
+            savePosts();
+            renderPosts();
+            
+            // 상세 모달이 열려있으면 업데이트
+            if (currentPostId === postId) {
+                openPostDetail(postId);
+            }
+        }
+
+        function isLiked(postId) {
+            const likedPosts = JSON.parse(localStorage.getItem('yeosu_liked_posts') || '[]');
+            return likedPosts.includes(postId);
+        }
+
+        function initializeStarRating() {
+            const stars = document.querySelectorAll('#starRating .star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    document.getElementById('postRating').value = rating;
+                    
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        }
+
+        function resetStarRating() {
+            document.querySelectorAll('#starRating .star').forEach(star => {
+                star.classList.remove('active');
+            });
+            document.getElementById('postRating').value = 0;
+        }
+
+        function loadMorePosts() {
+            // 실제로는 서버에서 더 많은 게시글을 로드하는 기능
+            alert('현재는 모든 게시글이 표시되었습니다.');
+        }
+
+        // 게시글 제출 처리
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newPost = {
+                id: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1,
+                category: document.getElementById('postCategory').value,
+                title: document.getElementById('postTitle').value,
+                restaurantName: document.getElementById('restaurantName').value,
+                location: document.getElementById('restaurantLocation').value,
+                content: document.getElementById('postContent').value,
+                author: document.getElementById('postAuthor').value,
+                rating: parseInt(document.getElementById('postRating').value),
+                createdAt: new Date(),
+                likes: 0,
+                comments: []
+            };
+            
+            posts.unshift(newPost); // 최신 게시글이 위에 오도록
+            savePosts();
+            renderPosts();
+            closePostModal();
+            
+            alert('게시글이 성공적으로 등록되었습니다!');
+        });
+
+        // CSS 동적 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            .category-tab.active {
+                background-color: #667eea;
+                color: white;
+            }
+            
+            .line-clamp-3 {
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        `;
+        document.head.appendChild(style);
         
         // 부드러운 스크롤
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -888,24 +1590,40 @@
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
                     target.scrollIntoView({
-                        behavior: 'smooth'
+                        behavior: 'smooth',
+                        block: 'start'
                     });
                 }
             });
         });
 
-        // 페이지 로드 시 지도 초기화
-        window.onload = function() {
-            initMap();
-        };
+        // 로딩 완료 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('여수 맛집 가이드가 준비되었습니다!');
+            
+            // 커뮤니티 초기화
+            initializeCommunity();
+            
+            // 페이지 로드 애니메이션
+            const cards = document.querySelectorAll('.restaurant-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
     </script>
 </body>
 </html>
     <script id="html_badge_script1">
         window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
-            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDi%2Fkfwb71Y270iAY31kUPsRHhTMoy3mGTkVM8HuYE8LEwBe%2FuqP7lxFcswUG2bhpI7rWloneFIng0DXTtP6Vrhs51xSBvGSteka3msR8Y8U6ZwRyVvL76fMKgSSr0blm04ah7lMqpoQSGLHUIPnewjiurqDAwfHtzvI4yik8PVjN1rqkufqpk%2BdYS1pCK3AVPljW%2FYqSZB5HbJg5HUr6Ur1x9OsS8dWXJRmpS5oySPyydZwaFDn3IQKUbwsnX5%2B4eahwa67yp4NsDQbf%2F4MWwmBCy5INEx9oX8mJZ1tRKsRcvRi71lumOStXf%2FpASZdFBT%2B4uMXPuUHJ%2BubqZwblKU8Yae3Z3Ura0SXLxY%2FXlumCsCwCQYudXOcSXHS3i7xQJzaugf89vMt7R2zaXN2W5IhanBgkQPWq%2BMB2By40mRW%2BsPQAenO7PGef8p5B4OLSjwp7A9DbLPrDsKZAuHgukDPRaxwGNeZEgfnBlLLnMfJ5Q2uYR%2BPoD3UL9Dyc5aBdSJedYKSz3iSpn9T6cCdkhds%3D";
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDqi83MC3hGc0ITJDjGE26n%2FPCyvYuCEVXqIRzwZWYcSax3qBK7iPnR%2FXV8i5Eddlkfk2DyYBnzmfT2QMXaw6oykHklLMXqJutd%2B0z2bEU8c2G1Fn8Bd92ed3p3hIjcn%2BR2PTbLym58bbG1oVpBgFNKtX2NbirF%2BhP0nibCB7LeH%2BnF50q95qdmFLSpvuZdo2mAuFvA9bPvicGWu38IAwWZUVnQzr991%2FqqH3C%2BE3QaiqE1bk5TZgw1tau9GElTEkDJe7IyNcUjWJAkfMMi1%2FH9w1W45uRKsp0Gx6VxQBfN4RIfKY2aCt9gSnIfcXrk8ZjatEzaX%2BQLDxTCp0VhzrrLJ9%2BWf2lIIfuDTFMIQ4spQnp3lPxM%2BU1KUfhN28TYUA8lQ31DOz4svPdgiRM9rS8JM4le3QMWmRpRfnppZ%2FVOum0rRoSkzQX%2FtI2WOXGOr2vlVKztaTZpeQ5WGRecIeGfljgmir1KLUqCvpQ3QotdpRDdf%2FiewNHHeImq%2FySeZz7wCaDgDDvGHUQSMJsVyArg4%3D";
         window.__genspark_locale = "ko-KR";
-        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDi/kfwb71Y270iAY31kUPsRHhTMoy3mGTkVM8HuYE8LEwBe/uqP7lxFcswUG2bhpI7rWloneFIng0DXTtP6Vrhs51xSBvGSteka3msR8Y8U6ZwRyVvL76fMKgSSr0blm04ah7lMqpoQSGLHUIPnewjiurqDAwfHtzvI4yik8PVjN1rqkufqpk+dYS1pCK3AVPljW/YqSZB5HbJg5HUr6Ur1x9OsS8dWXJRmpS5oySPyydZwaFDn3IQKUbwsnX5+4eahwa67yp4NsDQbf/4MWwmBCy5INEx9oX8mJZ1tRKsRcvRi71lumOStXf/pASZdFBT+4uMXPuUHJ+ubqZwblKU8Yae3Z3Ura0SXLxY/XlumCsCwCQYudXOcSXHS3i7xQJzaugf89vMt7R2zaXN2W5IhanBgkQPWq+MB2By40mRW+sPQAenO7PGef8p5B4OLSjwp7A9DbLPrDsKZAuHgukDPRaxwGNeZEgfnBlLLnMfJ5Q2uYR+PoD3UL9Dyc5aBdSJedYKSz3iSpn9T6cCdkhds=";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDqi83MC3hGc0ITJDjGE26n/PCyvYuCEVXqIRzwZWYcSax3qBK7iPnR/XV8i5Eddlkfk2DyYBnzmfT2QMXaw6oykHklLMXqJutd+0z2bEU8c2G1Fn8Bd92ed3p3hIjcn+R2PTbLym58bbG1oVpBgFNKtX2NbirF+hP0nibCB7LeH+nF50q95qdmFLSpvuZdo2mAuFvA9bPvicGWu38IAwWZUVnQzr991/qqH3C+E3QaiqE1bk5TZgw1tau9GElTEkDJe7IyNcUjWJAkfMMi1/H9w1W45uRKsp0Gx6VxQBfN4RIfKY2aCt9gSnIfcXrk8ZjatEzaX+QLDxTCp0VhzrrLJ9+Wf2lIIfuDTFMIQ4spQnp3lPxM+U1KUfhN28TYUA8lQ31DOz4svPdgiRM9rS8JM4le3QMWmRpRfnppZ/VOum0rRoSkzQX/tI2WOXGOr2vlVKztaTZpeQ5WGRecIeGfljgmir1KLUqCvpQ3QotdpRDdf/iewNHHeImq/ySeZz7wCaDgDDvGHUQSMJsVyArg4=";
     </script>
     
     <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
