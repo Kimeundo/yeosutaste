@@ -3,2241 +3,1330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>여수 맛집 가이드 - 6월 인기순 & 리뷰순 실시간 필터링</title>
-    <meta name="description" content="6월 기준 실제 검색 데이터와 리뷰 순위를 반영한 여수 맛집 가이드! 최신 인기 맛집, 리뷰 많은 순, 평점 높은 순으로 완벽한 필터링이 가능합니다.">
-    <meta name="keywords" content="여수맛집, 여수여행, 6월인기맛집, 순이네밥상, 로타리식당, 꽃돌게장1번가, 게장백반, 갈치조림">
-    <meta property="og:title" content="여수 맛집 가이드 - 6월 인기순 & 리뷰순 실시간 필터링">
-    <meta property="og:description" content="실제 검색 데이터 기반 여수 맛집 80곳 완전 정리! 네이버 1위 순이네밥상, 구글 1위 로타리식당 등 실시간 트렌드 반영">
-    <meta property="og:type" content="website">
-    <meta name="robots" content="index, follow">
-    
+    <title>여수 통합 가이드 - 맛집 · 관광지 · 관리자 시스템</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; 
-            line-height: 1.6;
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .rating-star { color: #fbbf24; }
-        .category-btn { transition: all 0.3s ease; }
-        .category-btn.active { background: #667eea; color: white; transform: scale(1.05); }
-        
-        .trending-badge {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            animation: pulse 2s infinite;
+        .card-hover {
+            transition: all 0.3s ease;
         }
-        
-        .new-badge {
-            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
         .filter-active {
-            background: #667eea !important;
-            color: white !important;
-            transform: scale(1.02);
-        }
-        
-        .restaurant-rank {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: linear-gradient(45deg, #ffd700, #ffb347);
-            color: #333;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .sort-btn {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .sort-btn:hover {
-            background: #f3f4f6;
-            transform: translateY(-1px);
-        }
-        
-        .sort-btn.active {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
-        /* PDF 최적화 */
-         {
-            .no-print { display: none !important; }
-            body { background: white !important; }
-            .shadow-lg { box-shadow: none !important; }
+        .admin-panel {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
         }
-        
-        .map-placeholder {
-            background: linear-gradient(45deg, #f3f4f6 25%, transparent 25%), 
-                        linear-gradient(-45deg, #f3f4f6 25%, transparent 25%), 
-                        linear-gradient(45deg, transparent 75%, #f3f4f6 75%), 
-                        linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            min-height: 400px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed #9ca3af;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
-        .restaurant-marker {
-            background: #667eea;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            margin: 5px;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .post-item {
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-        .post-item:hover {
-            transform: translateX(5px);
-            border-left-color: #667eea;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .comment-item {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 8px 0;
-            border-left: 3px solid #e2e8f0;
-        }
-        
-        .star-rating {
-            display: flex;
-            gap: 2px;
-        }
-        
-        .star-rating .star {
-            cursor: pointer;
-            color: #d1d5db;
-            transition: color 0.2s;
-        }
-        
-        .star-rating .star:hover,
-        .star-rating .star.active {
-            color: #fbbf24;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal.show {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .like-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .like-btn.liked {
-            color: #ef4444;
-            transform: scale(1.1);
-        }
-        
-        .search-highlight {
-            background: #fef3c7;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        
-        .loading-skeleton {
-            animation: shimmer 1.5s infinite;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
         }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
-    <header class="gradient-bg text-white">
-        <div class="container mx-auto px-4 py-6">
-            <div class="text-center">
-                <h1 class="text-4xl font-bold mb-2">
-                    <i class="fas fa-utensils mr-3"></i>
-                    여수 맛집 가이드
-                </h1>
-                <p class="text-blue-100 text-lg">6월 실시간 인기순 · 리뷰순 · 평점순 완벽 필터링</p>
-                <div class="mt-4 flex justify-center space-x-4">
-                    <span class="trending-badge">🔥 6월 HOT</span>
-                    <span class="new-badge">✨ 실시간 업데이트</span>
-                </div>
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-bold mb-2">🍽️ 여수 통합 가이드</h1>
+            <p class="text-lg opacity-90">6월 실시간 인기순 · 맛집 & 관광지 · 플러스 관리 부팅</p>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button onclick="showSection('restaurants')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
+                    🍴 맛집 안내
+                </button>
+                <button onclick="showSection('attractions')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
+                    🏛️ 관광지 안내
+                </button>
+                <button onclick="showSection('course')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
+                    🗺️ 여행 코스
+                </button>
+                <button onclick="showSection('community')" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-2 rounded-full transition">
+                    💬 커뮤니티
+                </button>
+                <button onclick="toggleAdmin()" class="bg-red-500 bg-opacity-70 hover:bg-opacity-90 px-6 py-2 rounded-full transition">
+                    ⚙️ 관리자
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Quick Navigation -->
-    <nav class="bg-white shadow-md sticky top-0 z-50 no-print">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-center space-x-8 py-4">
-                <a href="#restaurants" class="text-blue-600 hover:text-blue-800 font-medium">
-                    <i class="fas fa-utensils mr-2"></i>맛집
-                </a>
-                <a href="#map-section" class="text-blue-600 hover:text-blue-800 font-medium">
-                    <i class="fas fa-map mr-2"></i>지도
-                </a>
-                <a href="#course" class="text-blue-600 hover:text-blue-800 font-medium">
-                    <i class="fas fa-route mr-2"></i>여행코스
-                </a>
-                <a href="#community" class="text-blue-600 hover:text-blue-800 font-medium">
-                    <i class="fas fa-comments mr-2"></i>커뮤니티
-                </a>
+    <!-- Stats Dashboard -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📊 6월 실시간 트렌드</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-blue-600">80+</div>
+                <div class="text-gray-600">등록된 맛집</div>
+                <div class="text-blue-500 text-sm">🍽️</div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-green-600">50+</div>
+                <div class="text-gray-600">관광 명소</div>
+                <div class="text-green-500 text-sm">🏛️</div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-purple-600">4.7</div>
+                <div class="text-gray-600">평균 평점</div>
+                <div class="text-yellow-500 text-sm">⭐</div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-red-600">15</div>
+                <div class="text-gray-600">추천 코스</div>
+                <div class="text-red-500 text-sm">🎯</div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- 실시간 통계 대시보드 -->
-    <section class="py-6 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl font-bold text-center mb-6">📊 6월 실시간 트렌드</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center bg-white p-4 rounded-lg shadow-lg">
-                    <div class="text-3xl font-bold text-blue-600">80+</div>
-                    <div class="text-gray-600 text-sm">검증된 맛집</div>
-                    <i class="fas fa-utensils text-xl text-blue-400 mt-1"></i>
-                </div>
-                <div class="text-center bg-white p-4 rounded-lg shadow-lg">
-                    <div class="text-3xl font-bold text-green-600">4.7</div>
-                    <div class="text-gray-600 text-sm">평균 평점</div>
-                    <i class="fas fa-star text-xl text-yellow-400 mt-1"></i>
-                </div>
-                <div class="text-center bg-white p-4 rounded-lg shadow-lg">
-                    <div class="text-3xl font-bold text-purple-600">2.5K+</div>
-                    <div class="text-gray-600 text-sm">실제 리뷰</div>
-                    <i class="fas fa-comment text-xl text-purple-400 mt-1"></i>
-                </div>
-                <div class="text-center bg-white p-4 rounded-lg shadow-lg">
-                    <div class="text-3xl font-bold text-red-600">12</div>
-                    <div class="text-gray-600 text-sm">6월 신규</div>
-                    <i class="fas fa-plus-circle text-xl text-red-400 mt-1"></i>
-                </div>
+    <!-- Restaurants Section -->
+    <div id="restaurants-section" class="container mx-auto px-4 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-4">🔍 스마트 필터링</h3>
+            
+            <!-- Filters -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <select id="category-filter" class="border rounded px-3 py-2">
+                    <option value="전체">전체</option>
+                    <option value="게장백반">게장백반</option>
+                    <option value="갈치조림">갈치조림</option>
+                    <option value="해산물">해산물</option>
+                    <option value="카페">카페</option>
+                    <option value="기타">기타</option>
+                </select>
+                
+                <select id="price-filter" class="border rounded px-3 py-2">
+                    <option value="전체">가격대</option>
+                    <option value="1만원 이하">1만원 이하</option>
+                    <option value="1-2만원">1-2만원</option>
+                    <option value="2-3만원">2-3만원</option>
+                    <option value="3만원 이상">3만원 이상</option>
+                </select>
+                
+                <select id="rating-filter" class="border rounded px-3 py-2">
+                    <option value="전체">평점</option>
+                    <option value="4.5+">4.5+ ⭐⭐⭐⭐⭐</option>
+                    <option value="4.0+">4.0+ ⭐⭐⭐⭐</option>
+                    <option value="3.5+">3.5+ ⭐⭐⭐</option>
+                </select>
+                
+                <select id="area-filter" class="border rounded px-3 py-2">
+                    <option value="전체">지역</option>
+                    <option value="시내">시내</option>
+                    <option value="돌산">돌산</option>
+                    <option value="소호동">소호동</option>
+                    <option value="웅천">웅천</option>
+                </select>
+                
+                <select id="sort-filter" class="border rounded px-3 py-2">
+                    <option value="인기순">인기순</option>
+                    <option value="평점순">평점순</option>
+                    <option value="리뷰순">리뷰순</option>
+                    <option value="가격순">가격순</option>
+                </select>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="mb-6">
+                <input type="text" id="search-input" placeholder="맛집명, 메뉴, 지역으로 검색..." class="w-full border rounded-lg px-4 py-3 text-lg">
+            </div>
+            
+            <!-- Restaurant List -->
+            <div id="restaurant-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Restaurants will be populated by JavaScript -->
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- 고급 필터링 & 정렬 시스템 -->
-    <section class="bg-white shadow-lg py-6 no-print">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">🔍 스마트 필터링</h3>
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-600">정렬:</span>
-                    <button class="sort-btn px-3 py-1 rounded text-sm border active" data-sort="popularity">인기순</button>
-                    <button class="sort-btn px-3 py-1 rounded text-sm border" data-sort="reviews">리뷰순</button>
-                    <button class="sort-btn px-3 py-1 rounded text-sm border" data-sort="rating">평점순</button>
-                    <button class="sort-btn px-3 py-1 rounded text-sm border" data-sort="price">가격순</button>
+    <!-- Attractions Section -->
+    <div id="attractions-section" class="container mx-auto px-4 mb-8" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-4">🏛️ 여수 관광지 가이드</h3>
+            
+            <!-- Attraction Filters -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <select id="attraction-category-filter" class="border rounded px-3 py-2">
+                    <option value="전체">전체</option>
+                    <option value="자연관광">자연관광</option>
+                    <option value="문화유적">문화유적</option>
+                    <option value="체험시설">체험시설</option>
+                    <option value="해수욕장">해수욕장</option>
+                </select>
+                
+                <select id="attraction-time-filter" class="border rounded px-3 py-2">
+                    <option value="전체">소요시간</option>
+                    <option value="1시간 이내">1시간 이내</option>
+                    <option value="2-3시간">2-3시간</option>
+                    <option value="반나절">반나절</option>
+                    <option value="하루종일">하루종일</option>
+                </select>
+                
+                <select id="attraction-area-filter" class="border rounded px-3 py-2">
+                    <option value="전체">지역</option>
+                    <option value="시내">시내</option>
+                    <option value="돌산">돌산</option>
+                    <option value="거문도">거문도</option>
+                    <option value="기타">기타</option>
+                </select>
+                
+                <select id="attraction-sort-filter" class="border rounded px-3 py-2">
+                    <option value="인기순">인기순</option>
+                    <option value="평점순">평점순</option>
+                    <option value="거리순">거리순</option>
+                </select>
+            </div>
+            
+            <!-- Attraction List -->
+            <div id="attraction-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Attractions will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Section -->
+    <div id="course-section" class="container mx-auto px-4 mb-8" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-4">🗺️ 1박2일 여행 코스 추천</h3>
+            
+            <!-- Course Generator -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-bold mb-3">🎯 맞춤 코스 생성</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <select id="trip-type" class="border rounded px-3 py-2">
+                        <option value="가족여행">가족여행</option>
+                        <option value="연인여행">연인여행</option>
+                        <option value="친구여행">친구여행</option>
+                        <option value="혼자여행">혼자여행</option>
+                    </select>
+                    
+                    <select id="budget-range" class="border rounded px-3 py-2">
+                        <option value="경제형">경제형 (5만원)</option>
+                        <option value="일반형">일반형 (10만원)</option>
+                        <option value="프리미엄">프리미엄 (20만원)</option>
+                    </select>
+                    
+                    <select id="trip-style" class="border rounded px-3 py-2">
+                        <option value="맛집투어">맛집투어</option>
+                        <option value="관광위주">관광위주</option>
+                        <option value="균형형">균형형</option>
+                    </select>
+                    
+                    <button onclick="generateCourse()" class="btn-primary text-white px-4 py-2 rounded hover:opacity-90">
+                        코스 생성
+                    </button>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">📱 실시간 검색어</label>
-                    <select id="trendingFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="all">전체</option>
-                        <option value="trending">🔥 6월 인기 급상승</option>
-                        <option value="naver-top">📱 네이버 상위</option>
-                        <option value="google-top">🌐 구글 상위</option>
-                        <option value="review-hot">💬 리뷰 화제</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium mb-2">메뉴 카테고리</label>
-                    <select id="categoryFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="all">전체</option>
-                        <option value="게장백반">🦀 게장백반</option>
-                        <option value="갈치조림">🐟 갈치조림</option>
-                        <option value="해산물">🦐 해산물</option>
-                        <option value="카페">☕ 카페</option>
-                        <option value="특산품">🥬 특산품</option>
-                        <option value="한정식">🍱 한정식</option>
-                        <option value="회">🍣 회</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium mb-2">가격대</label>
-                    <select id="priceFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="all">전체</option>
-                        <option value="budget">💰 가성비 (1만원 이하)</option>
-                        <option value="moderate">💰💰 일반 (1-3만원)</option>
-                        <option value="premium">💰💰💰 프리미엄 (3만원 이상)</option>
-                    </select>
-                </div>
+            <!-- Course Display -->
+            <div id="course-display" class="space-y-6">
+                <!-- Courses will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">평점</label>
-                    <select id="ratingFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="all">전체</option>
-                        <option value="4.8">⭐⭐⭐⭐⭐ 4.8점 이상</option>
-                        <option value="4.5">⭐⭐⭐⭐ 4.5점 이상</option>
-                        <option value="4.0">⭐⭐⭐ 4.0점 이상</option>
+    <!-- Community Section -->
+    <div id="community-section" class="container mx-auto px-4 mb-8" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-4">💬 맛집 정보 공유</h3>
+            
+            <!-- Post Form -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-bold mb-3">새 글 작성</h4>
+                <div class="space-y-3">
+                    <input type="text" id="post-title" placeholder="제목을 입력하세요" class="w-full border rounded px-3 py-2">
+                    <select id="post-category" class="border rounded px-3 py-2">
+                        <option value="새 맛집 발견">새 맛집 발견</option>
+                        <option value="맛집 후기">맛집 후기</option>
+                        <option value="숨은 맛집 추천">숨은 맛집 추천</option>
+                        <option value="개선 제안">개선 제안</option>
                     </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">지역</label>
-                    <select id="locationFilter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="all">전체</option>
-                        <option value="시내">🏢 시내중심가</option>
-                        <option value="돌산">🌊 돌산읍</option>
-                        <option value="소호동">🏖️ 소호동</option>
-                        <option value="웅천">🚗 웅천</option>
-                        <option value="화양">🎣 화양면</option>
-                    </select>
+                    <textarea id="post-content" placeholder="내용을 입력하세요" class="w-full border rounded px-3 py-2 h-32"></textarea>
+                    <div class="flex space-x-3">
+                        <input type="text" id="restaurant-name" placeholder="맛집 이름" class="flex-1 border rounded px-3 py-2">
+                        <select id="rating" class="border rounded px-3 py-2">
+                            <option value="5">⭐⭐⭐⭐⭐</option>
+                            <option value="4">⭐⭐⭐⭐</option>
+                            <option value="3">⭐⭐⭐</option>
+                            <option value="2">⭐⭐</option>
+                            <option value="1">⭐</option>
+                        </select>
+                        <button onclick="submitPost()" class="btn-primary text-white px-6 py-2 rounded">게시</button>
+                    </div>
                 </div>
             </div>
             
-            <!-- 실시간 검색 -->
-            <div class="flex items-center space-x-4">
-                <div class="flex-1">
-                    <input type="text" id="searchInput" placeholder="맛집명, 메뉴, 위치로 검색..." 
-                           class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                </div>
-                <button onclick="resetFilters()" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-refresh mr-2"></i>초기화
-                </button>
-                <div id="resultCount" class="text-sm text-gray-600 whitespace-nowrap">
-                    총 <span class="font-bold text-blue-600">80</span>개 맛집
-                </div>
+            <!-- Posts List -->
+            <div id="posts-list" class="space-y-4">
+                <!-- Posts will be populated by JavaScript -->
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- 지도 섹션 -->
-    <section id="map-section" class="py-8 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">🗺️ 여수 맛집 위치 안내</h2>
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                
-                <div class="flex flex-wrap gap-3 mb-6 justify-center">
-                    <a href="https://map.naver.com/v5/search/여수%20맛집" target="_blank" 
-                       class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors">
-                        <i class="fas fa-map-marked-alt mr-2"></i>네이버지도에서 보기
-                    </a>
-                    <a href="https://www.google.com/maps/search/여수+맛집" target="_blank" 
-                       class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                        <i class="fab fa-google mr-2"></i>구글지도에서 보기
-                    </a>
-                    <a href="https://map.kakao.com/link/search/여수%20맛집" target="_blank" 
-                       class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors">
-                        <i class="fas fa-map mr-2"></i>카카오맵에서 보기
-                    </a>
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="fixed inset-0 z-50 admin-panel" style="display: none;">
+        <div class="container mx-auto px-4 py-8 max-w-4xl">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">⚙️ 관리자 패널</h2>
+                    <button onclick="toggleAdmin()" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-
-                <div class="map-placeholder">
-                    <div class="text-center">
-                        <i class="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
-                        <h3 class="text-xl font-bold text-gray-600 mb-2">여수 맛집 분포도</h3>
-                        <p class="text-gray-500 mb-4">위 버튼을 클릭하여 실시간 지도에서 확인하세요</p>
-                        
-                        <div class="mt-6">
-                            <div class="restaurant-marker bg-red-600">🥇 순이네밥상 (네이버 1위)</div>
-                            <div class="restaurant-marker bg-blue-600">🥇 로타리식당 (구글 1위)</div>
-                            <div class="restaurant-marker bg-purple-600">🔥 꽃돌게장1번가 (리뷰 1위)</div>
-                            <div class="restaurant-marker bg-orange-600">🌊 정다운식당 (오션뷰)</div>
-                            <div class="restaurant-marker bg-pink-600">☕ 모이핀 (카페 1위)</div>
-                            <div class="restaurant-marker bg-green-600">🥬 황제돌산갓김치</div>
+                
+                <!-- Admin Tabs -->
+                <div class="flex space-x-4 mb-6">
+                    <button onclick="showAdminTab('restaurants-admin')" class="admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white">
+                        맛집 관리
+                    </button>
+                    <button onclick="showAdminTab('attractions-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                        관광지 관리
+                    </button>
+                    <button onclick="showAdminTab('categories-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                        카테고리 관리
+                    </button>
+                    <button onclick="showAdminTab('stats-admin')" class="admin-tab-btn px-4 py-2 rounded bg-gray-300">
+                        통계 관리
+                    </button>
+                </div>
+                
+                <!-- Restaurant Admin -->
+                <div id="restaurants-admin" class="admin-content">
+                    <h3 class="text-lg font-bold mb-4">맛집 데이터 관리</h3>
+                    <div class="mb-4">
+                        <button onclick="showAddForm('restaurant')" class="btn-primary text-white px-4 py-2 rounded">
+                            + 새 맛집 추가
+                        </button>
+                    </div>
+                    <div id="restaurant-admin-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        <!-- Admin restaurant list -->
+                    </div>
+                </div>
+                
+                <!-- Attraction Admin -->
+                <div id="attractions-admin" class="admin-content" style="display: none;">
+                    <h3 class="text-lg font-bold mb-4">관광지 데이터 관리</h3>
+                    <div class="mb-4">
+                        <button onclick="showAddForm('attraction')" class="btn-primary text-white px-4 py-2 rounded">
+                            + 새 관광지 추가
+                        </button>
+                    </div>
+                    <div id="attraction-admin-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        <!-- Admin attraction list -->
+                    </div>
+                </div>
+                
+                <!-- Categories Admin -->
+                <div id="categories-admin" class="admin-content" style="display: none;">
+                    <h3 class="text-lg font-bold mb-4">카테고리 관리</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold mb-2">맛집 카테고리</h4>
+                            <div id="restaurant-categories" class="space-y-2">
+                                <!-- Categories will be listed here -->
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">관광지 카테고리</h4>
+                            <div id="attraction-categories" class="space-y-2">
+                                <!-- Categories will be listed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Admin -->
+                <div id="stats-admin" class="admin-content" style="display: none;">
+                    <h3 class="text-lg font-bold mb-4">통계 대시보드</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <canvas id="categoryChart" width="400" height="200"></canvas>
+                        </div>
+                        <div>
+                            <canvas id="ratingChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- 맛집 목록 -->
-    <section id="restaurants" class="py-8">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">🍽️ 여수 인기 맛집 TOP 80</h2>
-            
-            <!-- 로딩 상태 -->
-            <div id="loadingState" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="loading-skeleton h-64 rounded-lg"></div>
-                    <div class="loading-skeleton h-64 rounded-lg"></div>
-                    <div class="loading-skeleton h-64 rounded-lg"></div>
-                </div>
-            </div>
-            
-            <div id="restaurantGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 맛집 카드들이 여기에 동적으로 생성됩니다 -->
-            </div>
-            
-            <!-- 더보기 버튼 -->
-            <div class="text-center mt-8" id="loadMoreSection">
-                <button onclick="loadMoreRestaurants()" class="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                    <i class="fas fa-plus mr-2"></i>더 많은 맛집 보기 (<span id="remainingCount">60</span>개 남음)
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- 1박2일 코스 추천 -->
-    <section id="course" class="py-12 bg-gradient-to-r from-purple-50 to-blue-50">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">🗓️ 1박2일 맛집 코스 추천</h2>
-            
-            <div class="flex justify-center mb-8">
-                <div class="bg-white rounded-lg p-6 shadow-lg max-w-md w-full">
-                    <label class="block text-lg font-bold mb-3 text-center">🎯 여행 스타일 선택</label>
-                    <select id="courseType" class="w-full p-4 border-2 rounded-lg text-center font-medium" onchange="updateCourse()">
-                        <option value="standard">표준 코스 (조식1, 점심2, 저녁1)</option>
-                        <option value="premium">프리미엄 코스 (고급 맛집 위주)</option>
-                        <option value="budget">가성비 코스 (저렴한 맛집 위주)</option>
-                        <option value="local">현지인 코스 (숨은맛집 위주)</option>
-                        <option value="trending">🔥 6월 트렌드 코스</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="courseContent" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- 코스 내용이 여기에 동적으로 생성됩니다 -->
-            </div>
-        </div>
-    </section>
-
-    <!-- 커뮤니티 섹션 -->
-    <section id="community" class="py-12 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8">💬 맛집 커뮤니티</h2>
-            
-            <div class="text-center mb-8">
-                <button onclick="openPostModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg text-lg font-bold hover:from-blue-600 hover:to-purple-700 transition-colors">
-                    <i class="fas fa-edit mr-2"></i>맛집 정보 공유하기
-                </button>
-            </div>
-
-            <div class="flex justify-center mb-8">
-                <div class="bg-gray-100 rounded-lg p-1 flex space-x-1">
-                    <button onclick="filterPosts('all')" class="category-tab active px-6 py-2 rounded-lg font-medium transition-colors" data-category="all">
-                        전체
-                    </button>
-                    <button onclick="filterPosts('new')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="new">
-                        신규 오픈
-                    </button>
-                    <button onclick="filterPosts('hidden')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="hidden">
-                        숨은맛집
-                    </button>
-                    <button onclick="filterPosts('review')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="review">
-                        후기
-                    </button>
-                    <button onclick="filterPosts('question')" class="category-tab px-6 py-2 rounded-lg font-medium transition-colors" data-category="question">
-                        질문
-                    </button>
-                </div>
-            </div>
-
-            <div id="postsList" class="max-w-4xl mx-auto space-y-6">
-                <!-- 게시글이 여기에 동적으로 추가됩니다 -->
-            </div>
-
-            <div class="text-center mt-8">
-                <button onclick="loadMorePosts()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-plus mr-2"></i>더 많은 게시글 보기
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- 게시글 작성 모달 -->
-    <div id="postModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">맛집 정보 공유하기</h3>
-                <button onclick="closePostModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            
-            <form id="postForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium mb-2">카테고리</label>
-                    <select id="postCategory" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-                        <option value="">카테고리 선택</option>
-                        <option value="new">🏪 신규 오픈</option>
-                        <option value="hidden">💎 숨은맛집</option>
-                        <option value="review">📝 후기</option>
-                        <option value="question">❓ 질문</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">제목</label>
-                    <input type="text" id="postTitle" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="제목을 입력하세요" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">식당명</label>
-                    <input type="text" id="restaurantName" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="식당명을 입력하세요">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">위치</label>
-                    <input type="text" id="restaurantLocation" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="주소 또는 위치를 입력하세요">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">별점</label>
-                    <div class="star-rating" id="starRating">
-                        <span class="star" data-rating="1">⭐</span>
-                        <span class="star" data-rating="2">⭐</span>
-                        <span class="star" data-rating="3">⭐</span>
-                        <span class="star" data-rating="4">⭐</span>
-                        <span class="star" data-rating="5">⭐</span>
-                    </div>
-                    <input type="hidden" id="postRating" value="0">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">내용</label>
-                    <textarea id="postContent" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32" placeholder="맛집에 대한 자세한 정보를 입력하세요" required></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">작성자</label>
-                    <input type="text" id="postAuthor" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="닉네임을 입력하세요" required>
-                </div>
-
-                <div class="flex space-x-4">
-                    <button type="submit" class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
-                        <i class="fas fa-share mr-2"></i>게시글 등록
-                    </button>
-                    <button type="button" onclick="closePostModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
-                        취소
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
-    <!-- 게시글 상세 모달 -->
-    <div id="postDetailModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">게시글 상세</h3>
-                <button onclick="closePostDetailModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            
-            <div id="postDetailContent">
-                <!-- 게시글 상세 내용이 여기에 표시됩니다 -->
-            </div>
-
-            <div class="mt-8 border-t pt-6">
-                <h4 class="text-lg font-bold mb-4">댓글</h4>
-                
-                <div class="mb-6">
-                    <div class="flex space-x-3">
-                        <input type="text" id="commentAuthor" class="flex-1 p-3 border rounded-lg" placeholder="닉네임">
-                        <input type="text" id="commentContent" class="flex-2 p-3 border rounded-lg" placeholder="댓글을 입력하세요">
-                        <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                            <i class="fas fa-comment mr-1"></i>댓글
-                        </button>
-                    </div>
+    <!-- Add/Edit Form Modal -->
+    <div id="form-modal" class="fixed inset-0 z-60 bg-black bg-opacity-50" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="form-title" class="text-lg font-bold">새 항목 추가</h3>
+                    <button onclick="closeForm()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-
-                <div id="commentsList">
-                    <!-- 댓글이 여기에 표시됩니다 -->
+                <form id="item-form" class="space-y-4">
+                    <!-- Form fields will be populated by JavaScript -->
+                </form>
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" onclick="saveItem()" class="flex-1 btn-primary text-white py-2 rounded">저장</button>
+                    <button type="button" onclick="closeForm()" class="flex-1 bg-gray-300 py-2 rounded">취소</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-xl font-bold mb-4">🍽️ 여수 맛집 가이드</h3>
-                    <p class="text-gray-300 leading-relaxed">6월 실시간 검색 데이터와 리뷰 분석을 통한 정확한 여수 맛집 정보를 제공합니다. 80곳의 검증된 맛집과 실시간 필터링으로 최적의 맛집을 찾아보세요.</p>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4">🔗 바로가기</h4>
-                    <div class="space-y-3">
-                        <a href="#restaurants" class="block text-gray-300 hover:text-white transition-colors">
-                            <i class="fas fa-utensils mr-2"></i>맛집 찾기
-                        </a>
-                        <a href="#map-section" class="block text-gray-300 hover:text-white transition-colors">
-                            <i class="fas fa-map mr-2"></i>지도
-                        </a>
-                        <a href="#course" class="block text-gray-300 hover:text-white transition-colors">
-                            <i class="fas fa-route mr-2"></i>여행 코스
-                        </a>
-                        <a href="#community" class="block text-gray-300 hover:text-white transition-colors">
-                            <i class="fas fa-comments mr-2"></i>커뮤니티
-                        </a>
-                    </div>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4">📊 데이터 출처</h4>
-                    <div class="space-y-2 text-sm text-gray-300">
-                        <p>• 네이버 플레이스 실시간 순위</p>
-                        <p>• 구글 맵스 평점 데이터</p>
-                        <p>• 다이닝코드 리뷰 분석</p>
-                        <p>• 트립어드바이저 여행자 평가</p>
-                        <p>• 식신 맛집 랭킹</p>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-                <p>&copy; 2025 여수 맛집 가이드. 실시간 데이터 업데이트 | 📱 모바일 최적화 | 🗺️ 지도 연동</p>
-                <p class="mt-2 text-sm">⭐ 6월 기준 실제 검색 순위와 리뷰 데이터를 반영했습니다.</p>
-            </div>
-        </div>
-    </footer>
 
     <script>
-        // 전역 변수
-        let allRestaurants = [];
-        let displayedRestaurants = [];
-        let currentSort = 'popularity';
-        let currentFilters = {
-            trending: 'all',
-            category: 'all',
-            price: 'all',
-            rating: 'all',
-            location: 'all',
-            search: ''
-        };
-        let currentPostId = null;
-        let posts = [];
-        let currentCategory = 'all';
-        let displayCount = 20;
-
-        // 실제 맛집 데이터 (6월 기준 실제 검색 순위 반영)
-        const restaurantData = [
-            // TOP 10 - 6월 최고 인기
+        // Data Storage
+        let restaurants = [
             {
                 id: 1,
                 name: "순이네밥상",
-                category: "갈치조림",
-                price: 15000,
-                rating: 4.6,
-                location: "시내",
-                address: "전남 여수시 동문로 11",
-                phone: "061-662-8866",
-                hours: "09:30-21:00 (둘째,넷째 수요일 휴무)",
-                description: "네이버 플레이스 여수 맛집 1위! 푸짐하고 깊은 맛의 갈치조림 정식",
-                trending: "naver-top",
-                reviews: 2847,
-                popularity: 100,
-                badges: ["네이버 1위", "6월 HOT"],
-                specialMenu: "갈치조림정식 15,000원"
+                category: "게장백반",
+                price: "1-2만원",
+                rating: 4.9,
+                reviews: 834,
+                area: "시내",
+                address: "전남 여수시 통제영5길 5",
+                phone: "061-662-****",
+                hours: "09:30-21:00",
+                description: "네이버 플레이스 1위! 푸짐한 게장백반과 갈치조림이 유명한 현지인 맛집",
+                image: "🍽️",
+                trending: true
             },
             {
                 id: 2,
                 name: "로타리식당",
                 category: "게장백반",
-                price: 12000,
-                rating: 4.8,
-                location: "시내",
+                price: "1만원 이하",
+                rating: 4.3,
+                reviews: 956,
+                area: "시내",
                 address: "전남 여수시 서교3길 2-1",
-                phone: "061-642-2156",
-                hours: "08:00-20:00 (연중무휴)",
-                description: "구글 맵스 여수 맛집 1위! 30년 전통 백반 전문점, 양념&간장게장 무제한 리필",
-                trending: "google-top",
-                reviews: 1923,
-                popularity: 98,
-                badges: ["구글 1위", "30년 전통"],
-                specialMenu: "백반 12,000원"
+                phone: "061-642-****",
+                hours: "08:00-20:00",
+                description: "구글 평점 1위! 30년 전통의 가성비 최고 백반집",
+                image: "🍽️",
+                trending: true
             },
             {
                 id: 3,
                 name: "꽃돌게장1번가",
                 category: "게장백반",
-                price: 35000,
+                price: "3만원 이상",
                 rating: 4.7,
-                location: "시내",
+                reviews: 1247,
+                area: "시내",
                 address: "전남 여수시 봉산2로 36",
-                phone: "0507-1395-0006",
-                hours: "10:00-21:30 (브레이크 15:00-17:00)",
-                description: "다이닝코드 1위! 리뷰 최다 보유, 꽃게정식 전문점 셀프바 운영",
-                trending: "review-hot",
-                reviews: 3124,
-                popularity: 96,
-                badges: ["리뷰 1위", "셀프바"],
-                specialMenu: "꽃게정식 35,000원"
+                phone: "0507-1395-****",
+                hours: "10:00-21:30",
+                description: "다이닝코드 1위! 꽃게정식과 무한리필 게장으로 유명",
+                image: "🦀",
+                trending: true
             },
             {
                 id: 4,
                 name: "정다운식당",
                 category: "게장백반",
-                price: 30000,
-                rating: 4.5,
-                location: "돌산",
+                price: "2-3만원",
+                rating: 4.2,
+                reviews: 723,
+                area: "돌산",
                 address: "전남 여수시 돌산읍 마상포길 12",
-                phone: "0507-1349-0744",
-                hours: "10:00-21:00 (목,금 21:30까지)",
-                description: "35년 전통 게장맛집, 돌산 오션뷰 대형매장 캐치테이블 예약 필수",
-                trending: "trending",
-                reviews: 1567,
-                popularity: 94,
-                badges: ["오션뷰", "35년 전통"],
-                specialMenu: "암꽃게장정식 30,000원"
+                phone: "0507-1349-****",
+                hours: "10:00-21:00",
+                description: "35년 전통의 오션뷰 게장맛집. 암꽃게장과 꽃게탕이 일품",
+                image: "🌊",
+                trending: false
             },
             {
                 id: 5,
-                name: "모이핀",
-                category: "카페",
-                price: 12000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 해양공원",
-                phone: "061-685-7777",
-                hours: "09:00-22:00",
-                description: "다이닝코드 카페 1위! 여수 대표 오션뷰 디저트카페, 인스타 핫플레이스",
-                trending: "trending",
-                reviews: 892,
-                popularity: 92,
-                badges: ["카페 1위", "오션뷰"],
-                specialMenu: "시그니처 디저트 8,000원~12,000원"
-            },
-            {
-                id: 6,
-                name: "남진이네자연산갈치명가",
-                category: "갈치조림",
-                price: 18000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 봉산동",
-                phone: "061-642-6080",
-                hours: "11:00-20:00",
-                description: "아드님이 직접 포를 떠서 만드는 수제 갈치조림, 블로그 맛집",
-                trending: "review-hot",
-                reviews: 687,
-                popularity: 90,
-                badges: ["수제 갈치", "블로그 인기"],
-                specialMenu: "자연산갈치조림 18,000원"
-            },
-            {
-                id: 7,
-                name: "황제돌산갓김치",
-                category: "특산품",
-                price: 10000,
-                rating: 4.5,
-                location: "돌산",
-                address: "전남 여수시 돌산읍 우두리 698-3",
-                phone: "061-644-1147",
-                hours: "08:00-19:00",
-                description: "프리미엄 여수 돌산갓김치 전문, 전국 택배 주문 가능",
-                trending: "trending",
-                reviews: 234,
-                popularity: 88,
-                badges: ["특산품", "택배가능"],
-                specialMenu: "돌산갓김치 1kg 10,000원"
-            },
-            {
-                id: 8,
-                name: "삼학집",
-                category: "갈치조림",
-                price: 16000,
-                rating: 4.5,
-                location: "시내",
-                address: "전남 여수시 수정동",
-                phone: "061-644-2345",
-                hours: "11:00-21:00",
-                description: "6시 내고향 출연! 매콤새콤한 양념의 갈치조림, 여수 수정동 명물",
-                trending: "trending",
-                reviews: 445,
-                popularity: 86,
-                badges: ["TV 출연", "매콤 양념"],
-                specialMenu: "갈치조림 16,000원"
-            },
-            {
-                id: 9,
                 name: "여수당",
                 category: "카페",
-                price: 8000,
-                rating: 4.3,
-                location: "시내",
+                price: "1만원 이하",
+                rating: 4.8,
+                reviews: 423,
+                area: "시내",
                 address: "전남 여수시 중앙동",
-                phone: "061-662-1004",
+                phone: "061-***-****",
                 hours: "10:00-22:00",
-                description: "여수 명물 쑥아이스크림, 쑥초코로 유명한 디저트카페",
-                trending: "trending",
-                reviews: 567,
-                popularity: 84,
-                badges: ["쑥아이스크림", "명물"],
-                specialMenu: "쑥아이스크림 8,000원"
+                description: "쑥아이스크림과 쑥초콜릿으로 유명한 여수 대표 디저트 카페",
+                image: "🍦",
+                trending: true
+            }
+        ];
+
+        let attractions = [
+            {
+                id: 1,
+                name: "아쿠아플라넷 여수",
+                category: "체험시설",
+                time: "2-3시간",
+                rating: 4.5,
+                reviews: 2834,
+                area: "시내",
+                address: "전남 여수시 오동도로 61-11",
+                price: "성인 39,000원",
+                description: "국내 2위 규모의 아쿠아리움. 벨루가, 바이칼물범 등 다양한 해양생물 관람",
+                image: "🐋",
+                trending: true
             },
             {
-                id: 10,
-                name: "싱싱게장마을",
-                category: "게장백반",
-                price: 14000,
-                rating: 4.9,
-                location: "시내",
-                address: "전남 여수시 중앙동",
-                phone: "061-662-5678",
-                hours: "11:00-21:00",
-                description: "다이닝코드 평점 최고! 가성비 좋은 게장백반, 무료주차 가능",
-                trending: "review-hot",
-                reviews: 1234,
-                popularity: 82,
-                badges: ["평점 최고", "무료주차"],
-                specialMenu: "게장백반 14,000원"
-            },
-            // 11-30위 추가
-            {
-                id: 11,
-                name: "바다김밥",
-                category: "해산물",
-                price: 8000,
-                rating: 4.2,
-                location: "시내",
-                address: "전남 여수시 통제영5길 10-4",
-                phone: "061-665-1234",
-                hours: "06:00-20:00",
-                description: "이순신광장 근처 24시간 김밥 전문점, 갓참치김밥이 유명",
-                trending: "trending",
-                reviews: 789,
-                popularity: 80,
-                badges: ["24시간", "갓참치김밥"],
-                specialMenu: "갓참치김밥 8,000원"
+                id: 2,
+                name: "여수해상케이블카",
+                category: "체험시설",
+                time: "1시간 이내",
+                rating: 4.0,
+                reviews: 1523,
+                area: "돌산",
+                address: "전남 여수시 돌산읍 돌산로 3600-1",
+                price: "성인 22,000원",
+                description: "바다 위를 가로지르는 케이블카. 여수 전경과 다도해 절경 감상",
+                image: "🚡",
+                trending: true
             },
             {
-                id: 12,
-                name: "좌수영바게트버거",
-                category: "해산물",
-                price: 9000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 동문로 10",
-                phone: "061-664-5555",
-                hours: "08:00-22:00",
-                description: "여수 명물 바게트버거, SNS에서 화제인 맛집",
-                trending: "trending",
-                reviews: 567,
-                popularity: 78,
-                badges: ["SNS 화제", "바게트버거"],
-                specialMenu: "시그니처 바게트버거 9,000원"
+                id: 3,
+                name: "오동도",
+                category: "자연관광",
+                time: "2-3시간",
+                rating: 4.7,
+                reviews: 3456,
+                area: "시내",
+                address: "전남 여수시 오동도로 222",
+                price: "무료",
+                description: "동백꽃으로 유명한 여수 대표 관광지. 산책로와 등대, 음악분수 운영",
+                image: "🌺",
+                trending: true
             },
             {
-                id: 13,
-                name: "여진식당",
-                category: "해산물",
-                price: 13000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 봉강로",
-                phone: "061-643-7777",
-                hours: "11:00-21:00",
-                description: "생선구이와 게장백반 전문, 현지인들이 많이 찾는 가성비 맛집",
-                trending: "naver-top",
-                reviews: 891,
-                popularity: 76,
-                badges: ["현지인 맛집", "생선구이"],
-                specialMenu: "생선구이정식 13,000원"
+                id: 4,
+                name: "이순신광장",
+                category: "문화유적",
+                time: "1시간 이내",
+                rating: 4.5,
+                reviews: 987,
+                area: "시내",
+                address: "전남 여수시 중앙로",
+                price: "무료",
+                description: "이순신 동상과 진남관이 있는 역사문화 광장. 각종 축제와 행사 개최",
+                image: "⚓",
+                trending: false
             },
             {
-                id: 14,
-                name: "동서식당",
-                category: "갈치조림",
-                price: 14000,
-                rating: 4.2,
-                location: "시내",
-                address: "전남 여수시 학동",
-                phone: "061-662-8888",
-                hours: "10:00-20:00",
-                description: "식객 허영만 추천 맛집! 전통 갈치조림의 진수",
-                trending: "review-hot",
-                reviews: 456,
-                popularity: 74,
-                badges: ["허영만 추천", "전통 맛"],
-                specialMenu: "갈치조림 14,000원"
-            },
-            {
-                id: 15,
-                name: "명동게장",
-                category: "게장백반",
-                price: 16000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 명동",
-                phone: "061-664-9999",
-                hours: "10:00-21:00",
-                description: "3대째 이어오는 전통 게장 맛집, 현지인 강력 추천",
-                trending: "review-hot",
-                reviews: 1123,
-                popularity: 72,
-                badges: ["3대 전통", "현지인 추천"],
-                specialMenu: "간장게장정식 16,000원"
-            },
-            {
-                id: 16,
-                name: "복춘식당",
-                category: "한정식",
-                price: 12000,
+                id: 5,
+                name: "향일암",
+                category: "문화유적",
+                time: "반나절",
                 rating: 4.6,
-                location: "소호동",
-                address: "전남 여수시 소호동",
-                phone: "061-665-2222",
-                hours: "11:00-20:00",
-                description: "성시경의 먹을텐데 출연! 현지인들만 아는 집밥 맛집",
-                trending: "trending",
-                reviews: 334,
-                popularity: 70,
-                badges: ["TV 출연", "집밥 맛집"],
-                specialMenu: "할머니 백반 12,000원"
-            },
-            {
-                id: 17,
-                name: "나래밥상",
-                category: "갈치조림",
-                price: 15000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 중앙로",
-                phone: "061-663-3333",
-                hours: "11:00-21:00",
-                description: "나 혼자 산다 출연 맛집! 푸짐한 갈치조림과 반찬",
-                trending: "trending",
-                reviews: 678,
-                popularity: 68,
-                badges: ["나혼산 출연", "푸짐한 반찬"],
-                specialMenu: "갈치조림정식 15,000원"
-            },
-            {
-                id: 18,
-                name: "진미꽃게탕",
-                category: "해산물",
-                price: 20000,
-                rating: 4.5,
-                location: "시내",
-                address: "전남 여수시 시청서1길 8-12",
-                phone: "061-642-1111",
-                hours: "11:00-22:00",
-                description: "여수시청 옆 회식 맛집, 꽃게탕과 해산물 전문",
-                trending: "review-hot",
-                reviews: 789,
-                popularity: 66,
-                badges: ["회식 맛집", "꽃게탕"],
-                specialMenu: "꽃게탕 20,000원"
-            },
-            {
-                id: 19,
-                name: "경도회관",
-                category: "해산물",
-                price: 25000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 교동",
-                phone: "061-644-5555",
-                hours: "12:00-22:00",
-                description: "갯장어 하모 샤브샤브 원조집, 1994년부터 운영",
-                trending: "google-top",
-                reviews: 456,
-                popularity: 64,
-                badges: ["원조집", "하모샤브샤브"],
-                specialMenu: "하모샤브샤브 25,000원"
-            },
-            {
-                id: 20,
-                name: "7공주장어탕",
-                category: "해산물",
-                price: 22000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 교동",
-                phone: "061-643-7777",
-                hours: "11:00-21:00",
-                description: "장어골목 최고 맛집! 현지인들이 가장 많이 찾는 곳",
-                trending: "naver-top",
-                reviews: 567,
-                popularity: 62,
-                badges: ["장어골목", "현지인 최애"],
-                specialMenu: "장어탕 22,000원"
-            },
-            // 추가 맛집들 (21-40)
-            {
-                id: 21,
-                name: "서울해장국",
-                category: "한정식",
-                price: 7000,
-                rating: 4.2,
-                location: "시내",
-                address: "전남 여수시 통제영5길 11",
-                phone: "061-662-0505",
-                hours: "05:00-15:00",
-                description: "새벽 5시부터 운영하는 50년 전통 해장국 맛집",
-                trending: "naver-top",
-                reviews: 445,
-                popularity: 60,
-                badges: ["50년 전통", "새벽 운영"],
-                specialMenu: "해장국 7,000원"
-            },
-            {
-                id: 22,
-                name: "그때그집",
-                category: "게장백반",
-                price: 18000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 봉산동",
-                phone: "061-664-2020",
-                hours: "11:00-21:00",
-                description: "옛날 그대로의 정통 게장백반, 추억의 맛",
-                trending: "review-hot",
-                reviews: 789,
-                popularity: 58,
-                badges: ["정통 맛", "추억의 맛"],
-                specialMenu: "정통게장백반 18,000원"
-            },
-            {
-                id: 23,
-                name: "화양식당",
-                category: "해산물",
-                price: 15000,
-                rating: 4.1,
-                location: "화양",
-                address: "전남 여수시 화양면",
-                phone: "061-688-1234",
-                hours: "10:00-20:00",
-                description: "화양면 바닷가 맛집, 신선한 해산물 직영",
-                trending: "trending",
-                reviews: 234,
-                popularity: 56,
-                badges: ["바닷가 맛집", "직영"],
-                specialMenu: "제철 해산물 15,000원"
-            },
-            {
-                id: 24,
-                name: "구봉만두",
-                category: "한정식",
-                price: 6000,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 중앙로 77",
-                phone: "061-663-5555",
-                hours: "09:00-19:00",
-                description: "여수 전통 만두 전문점, 수제만두의 진수",
-                trending: "trending",
-                reviews: 345,
-                popularity: 54,
-                badges: ["전통 만두", "수제"],
-                specialMenu: "수제만두 6,000원"
-            },
-            {
-                id: 25,
-                name: "이순신수제버거",
-                category: "해산물",
-                price: 8500,
-                rating: 4.2,
-                location: "시내",
-                address: "전남 여수시 이순신로",
-                phone: "061-665-6666",
-                hours: "11:00-22:00",
-                description: "이순신광장 명물 수제버거, 젊은층에게 인기",
-                trending: "trending",
-                reviews: 567,
-                popularity: 52,
-                badges: ["수제버거", "젊은층 인기"],
-                specialMenu: "시그니처버거 8,500원"
-            },
-            {
-                id: 26,
-                name: "팔도미역",
-                category: "특산품",
-                price: 5000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 봉강로",
-                phone: "061-644-7777",
-                hours: "08:00-20:00",
-                description: "여수 특산품 미역 전문점, 선물용으로 인기",
-                trending: "trending",
-                reviews: 123,
-                popularity: 50,
-                badges: ["특산품", "선물용"],
-                specialMenu: "자연산미역 5,000원"
-            },
-            {
-                id: 27,
-                name: "유정식당",
-                category: "한정식",
-                price: 11000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 학동",
-                phone: "061-662-8080",
-                hours: "11:00-20:00",
-                description: "정갈한 한정식, 가족 식사에 적합한 맛집",
-                trending: "naver-top",
-                reviews: 456,
-                popularity: 48,
-                badges: ["정갈한 맛", "가족 식사"],
-                specialMenu: "한정식 11,000원"
-            },
-            {
-                id: 28,
-                name: "낭만별식",
-                category: "게장백반",
-                price: 13000,
-                rating: 4.2,
-                location: "돌산",
-                address: "전남 여수시 돌산읍 진두해안길 72",
-                phone: "061-644-9090",
-                hours: "10:00-21:00",
-                description: "돌산 해안가 가성비 게장백반 맛집",
-                trending: "review-hot",
-                reviews: 678,
-                popularity: 46,
-                badges: ["가성비", "해안가"],
-                specialMenu: "게장백반 13,000원"
-            },
-            {
-                id: 29,
-                name: "41번포차",
-                category: "해산물",
-                price: 18000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 종포공원",
-                phone: "061-665-4141",
-                hours: "17:00-02:00",
-                description: "여수 낭만포차 대표 맛집, 야경과 함께 즐기는 포차",
-                trending: "trending",
-                reviews: 789,
-                popularity: 44,
-                badges: ["낭만포차", "야경"],
-                specialMenu: "포차 안주 18,000원"
-            },
-            {
-                id: 30,
-                name: "갓버터도나스",
-                category: "카페",
-                price: 3500,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 중앙동",
-                phone: "061-663-9999",
-                hours: "08:00-22:00",
-                description: "여수 명물 갓버터도넛, SNS에서 인기 급상승",
-                trending: "trending",
-                reviews: 234,
-                popularity: 42,
-                badges: ["SNS 인기", "갓버터"],
-                specialMenu: "갓버터도넛 3,500원"
+                reviews: 1876,
+                area: "돌산",
+                address: "전남 여수시 돌산읍 율림리",
+                price: "무료",
+                description: "해돋이 명소로 유명한 관음사의 부속암자. 바위틈에 자리잡은 독특한 구조",
+                image: "🌅",
+                trending: true
             }
         ];
 
-        // 추가 맛집 데이터 (31-80) - 실제 여수 맛집들 추가
-        const additionalRestaurants = [
+        let categories = {
+            restaurant: ["게장백반", "갈치조림", "해산물", "카페", "기타"],
+            attraction: ["자연관광", "문화유적", "체험시설", "해수욕장"]
+        };
+
+        let posts = [
             {
-                id: 31,
-                name: "풍산식당",
-                category: "갈치조림",
-                price: 17000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 풍향로",
-                phone: "061-663-1010",
-                hours: "11:00-20:00",
-                description: "오래된 갈치조림 맛집, 깊은 맛의 비법 양념",
-                trending: "naver-top",
-                reviews: 345,
-                popularity: 40
+                id: 1,
+                title: "돌산에서 새로 발견한 숨은 해물찜 맛집!",
+                category: "새 맛집 발견",
+                author: "여행러버",
+                content: "돌산 우두리에 새로 오픈한 해물찜 전문점 다녀왔어요. 킹크랩이 진짜 실하고 양념도 적당히 매콤해서 좋았습니다.",
+                restaurant: "바다향 해물찜",
+                rating: 5,
+                date: "2025-06-08",
+                likes: 23
             },
             {
-                id: 32,
-                name: "해금정",
-                category: "한정식",
-                price: 22000,
-                rating: 4.3,
-                location: "소호동",
-                address: "전남 여수시 소호로",
-                phone: "061-665-2020",
-                hours: "12:00-21:00",
-                description: "일식집 겸 백반 맛집, 고급스러운 분위기",
-                trending: "google-top",
-                reviews: 456,
-                popularity: 38
-            },
-            {
-                id: 33,
-                name: "돌산식당",
-                category: "해산물",
-                price: 19000,
-                rating: 4.2,
-                location: "돌산",
-                address: "전남 여수시 돌산읍",
-                phone: "061-644-3030",
-                hours: "10:00-21:00",
-                description: "돌산 현지 맛집, 신선한 해산물 전문",
-                trending: "trending",
-                reviews: 567,
-                popularity: 36
-            },
-            {
-                id: 34,
-                name: "청정게장촌",
-                category: "게장백반",
-                price: 16000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 봉산남3길 26",
-                phone: "061-662-4040",
-                hours: "10:00-21:00",
-                description: "깨끗하고 정갈한 게장 전문점",
-                trending: "review-hot",
-                reviews: 678,
-                popularity: 34
-            },
-            {
-                id: 35,
-                name: "문자네통장어",
-                category: "해산물",
-                price: 24000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 교동",
-                phone: "061-643-5050",
-                hours: "12:00-22:00",
-                description: "장어국 전문점, 보양식으로 유명",
-                trending: "naver-top",
-                reviews: 234,
-                popularity: 32
-            },
-            {
-                id: 36,
-                name: "백천선어마을",
-                category: "회",
-                price: 35000,
-                rating: 4.5,
-                location: "소호동",
-                address: "전남 여수시 소호동",
-                phone: "061-665-6060",
-                hours: "11:00-22:00",
-                description: "신선한 선어회 전문, 고급 횟집",
-                trending: "google-top",
-                reviews: 789,
-                popularity: 30
-            },
-            {
-                id: 37,
-                name: "수평선횟집",
-                category: "회",
-                price: 28000,
-                rating: 4.2,
-                location: "소호동",
-                address: "전남 여수시 소호해안로",
-                phone: "061-665-7070",
-                hours: "11:00-22:00",
-                description: "바다 전망 좋은 횟집, 스키다시 푸짐",
-                trending: "trending",
-                reviews: 456,
-                popularity: 28
-            },
-            {
-                id: 38,
-                name: "아와비",
-                category: "회",
-                price: 32000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 중앙로",
-                phone: "061-664-8080",
-                hours: "17:00-24:00",
-                description: "전복 전문 고급 횟집, 저녁 전용",
-                trending: "review-hot",
-                reviews: 345,
-                popularity: 26
-            },
-            {
-                id: 39,
-                name: "나진국밥",
-                category: "한정식",
-                price: 8000,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 학동",
-                phone: "061-662-9090",
-                hours: "06:00-16:00",
-                description: "새벽부터 운영하는 국밥 전문점",
-                trending: "naver-top",
-                reviews: 567,
-                popularity: 24
-            },
-            {
-                id: 40,
-                name: "석정식당",
-                category: "한정식",
-                price: 25000,
-                rating: 4.4,
-                location: "시내",
-                address: "전남 여수시 봉강로",
-                phone: "061-643-1010",
-                hours: "11:00-21:00",
-                description: "보리굴비 전문점, 고급스러운 밥상",
-                trending: "google-top",
-                reviews: 234,
-                popularity: 22
-            },
-            // 41-80 추가
-            {
-                id: 41,
-                name: "라또아",
-                category: "카페",
-                price: 8000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 해양공원로",
-                phone: "061-685-2020",
-                hours: "09:00-22:00",
-                description: "여수 대형카페, 30여가지 베이커리와 브런치",
-                trending: "trending",
-                reviews: 345,
-                popularity: 20
-            },
-            {
-                id: 42,
-                name: "카페공정",
-                category: "카페",
-                price: 6000,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 중앙로",
-                phone: "061-663-3030",
-                hours: "10:00-19:30",
-                description: "공정무역 원두 전문 카페",
-                trending: "trending",
-                reviews: 234,
-                popularity: 18
-            },
-            {
-                id: 43,
-                name: "카페힐론",
-                category: "카페",
-                price: 7000,
-                rating: 4.2,
-                location: "돌산",
-                address: "전남 여수시 돌산읍",
-                phone: "061-644-4040",
-                hours: "10:00-22:00",
-                description: "돌산 언덕 위 전망 좋은 카페",
-                trending: "trending",
-                reviews: 456,
-                popularity: 16
-            },
-            {
-                id: 44,
-                name: "세아네과일카페",
-                category: "카페",
-                price: 12000,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 봉산로",
-                phone: "061-664-5050",
-                hours: "11:00-21:00",
-                description: "예약제 과일빙수 전문 카페",
-                trending: "trending",
-                reviews: 567,
-                popularity: 14
-            },
-            {
-                id: 45,
-                name: "여수삼합당",
-                category: "카페",
-                price: 5000,
-                rating: 4.1,
-                location: "시내",
-                address: "전남 여수시 중앙동",
-                phone: "061-662-6060",
-                hours: "09:00-20:00",
-                description: "딸기모찌로 유명한 디저트 카페",
-                trending: "trending",
-                reviews: 234,
-                popularity: 12
-            },
-            {
-                id: 46,
-                name: "환기카페",
-                category: "카페",
-                price: 6500,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 학동",
-                phone: "061-663-7070",
-                hours: "08:00-22:00",
-                description: "조용한 분위기의 독서 카페",
-                trending: "trending",
-                reviews: 123,
-                popularity: 10
-            },
-            {
-                id: 47,
-                name: "가치커피",
-                category: "카페",
-                price: 5500,
-                rating: 4.2,
-                location: "시내",
-                address: "전남 여수시 봉강로",
-                phone: "061-665-8080",
-                hours: "07:00-21:00",
-                description: "가성비 좋은 커피 전문점",
-                trending: "trending",
-                reviews: 345,
-                popularity: 8
-            },
-            {
-                id: 48,
-                name: "피읖카페",
-                category: "카페",
-                price: 7500,
-                rating: 4.1,
-                location: "돌산",
-                address: "전남 여수시 돌산읍",
-                phone: "061-644-9090",
-                hours: "10:00-22:00",
-                description: "돌산 바다뷰 카페",
-                trending: "trending",
-                reviews: 234,
-                popularity: 6
-            },
-            {
-                id: 49,
-                name: "카페포",
-                category: "카페",
-                price: 8500,
-                rating: 4.3,
-                location: "시내",
-                address: "전남 여수시 중앙로",
-                phone: "061-662-1010",
-                hours: "09:00-23:00",
-                description: "야경이 아름다운 루프탑 카페",
-                trending: "trending",
-                reviews: 456,
-                popularity: 4
-            },
-            {
-                id: 50,
-                name: "대성식당",
-                category: "갈치조림",
-                price: 15000,
-                rating: 4.0,
-                location: "시내",
-                address: "전남 여수시 봉산동",
-                phone: "061-643-2020",
-                hours: "11:00-20:00",
-                description: "오래된 전통 갈치조림 맛집",
-                trending: "naver-top",
-                reviews: 234,
-                popularity: 2
+                id: 2,
+                title: "로타리식당 재방문 후기",
+                category: "맛집 후기",
+                author: "맛집헌터",
+                content: "여전히 가성비 최고네요. 게장이 짜지 않고 밑반찬도 정말 맛있어요. 현지인들이 많이 오는 이유를 알겠습니다.",
+                restaurant: "로타리식당",
+                rating: 4,
+                date: "2025-06-07",
+                likes: 45
             }
         ];
 
-        // 전체 맛집 데이터 결합
-        allRestaurants = [...restaurantData, ...additionalRestaurants];
+        // Current state
+        let currentSection = 'restaurants';
+        let isAdminMode = false;
+        let editingItem = null;
 
-        // 필터링 함수
-        function filterRestaurants() {
-            let filtered = [...allRestaurants];
-            
-            // 트렌딩 필터
-            if (currentFilters.trending !== 'all') {
-                filtered = filtered.filter(restaurant => restaurant.trending === currentFilters.trending);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderRestaurants();
+            renderAttractions();
+            renderPosts();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Filter listeners
+            document.getElementById('category-filter').addEventListener('change', renderRestaurants);
+            document.getElementById('price-filter').addEventListener('change', renderRestaurants);
+            document.getElementById('rating-filter').addEventListener('change', renderRestaurants);
+            document.getElementById('area-filter').addEventListener('change', renderRestaurants);
+            document.getElementById('sort-filter').addEventListener('change', renderRestaurants);
+            document.getElementById('search-input').addEventListener('input', renderRestaurants);
+
+            // Attraction filters
+            document.getElementById('attraction-category-filter').addEventListener('change', renderAttractions);
+            document.getElementById('attraction-time-filter').addEventListener('change', renderAttractions);
+            document.getElementById('attraction-area-filter').addEventListener('change', renderAttractions);
+            document.getElementById('attraction-sort-filter').addEventListener('change', renderAttractions);
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('restaurants-section').style.display = 'none';
+            document.getElementById('attractions-section').style.display = 'none';
+            document.getElementById('course-section').style.display = 'none';
+            document.getElementById('community-section').style.display = 'none';
+
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            currentSection = section;
+        }
+
+        function renderRestaurants() {
+            const container = document.getElementById('restaurant-list');
+            let filteredRestaurants = [...restaurants];
+
+            // Apply filters
+            const categoryFilter = document.getElementById('category-filter').value;
+            const priceFilter = document.getElementById('price-filter').value;
+            const ratingFilter = document.getElementById('rating-filter').value;
+            const areaFilter = document.getElementById('area-filter').value;
+            const sortFilter = document.getElementById('sort-filter').value;
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+
+            if (categoryFilter !== '전체') {
+                filteredRestaurants = filteredRestaurants.filter(r => r.category === categoryFilter);
             }
-            
-            // 카테고리 필터
-            if (currentFilters.category !== 'all') {
-                filtered = filtered.filter(restaurant => restaurant.category === currentFilters.category);
+            if (priceFilter !== '전체') {
+                filteredRestaurants = filteredRestaurants.filter(r => r.price === priceFilter);
             }
-            
-            // 가격 필터
-            if (currentFilters.price !== 'all') {
-                switch (currentFilters.price) {
-                    case 'budget':
-                        filtered = filtered.filter(restaurant => restaurant.price <= 10000);
-                        break;
-                    case 'moderate':
-                        filtered = filtered.filter(restaurant => restaurant.price > 10000 && restaurant.price <= 30000);
-                        break;
-                    case 'premium':
-                        filtered = filtered.filter(restaurant => restaurant.price > 30000);
-                        break;
-                }
+            if (ratingFilter !== '전체') {
+                const minRating = parseFloat(ratingFilter.replace('+', ''));
+                filteredRestaurants = filteredRestaurants.filter(r => r.rating >= minRating);
             }
-            
-            // 평점 필터
-            if (currentFilters.rating !== 'all') {
-                const minRating = parseFloat(currentFilters.rating);
-                filtered = filtered.filter(restaurant => restaurant.rating >= minRating);
+            if (areaFilter !== '전체') {
+                filteredRestaurants = filteredRestaurants.filter(r => r.area === areaFilter);
             }
-            
-            // 지역 필터
-            if (currentFilters.location !== 'all') {
-                filtered = filtered.filter(restaurant => restaurant.location === currentFilters.location);
-            }
-            
-            // 검색 필터
-            if (currentFilters.search) {
-                const searchTerm = currentFilters.search.toLowerCase();
-                filtered = filtered.filter(restaurant => 
-                    restaurant.name.toLowerCase().includes(searchTerm) ||
-                    restaurant.description.toLowerCase().includes(searchTerm) ||
-                    restaurant.category.toLowerCase().includes(searchTerm) ||
-                    restaurant.address.toLowerCase().includes(searchTerm)
+            if (searchInput) {
+                filteredRestaurants = filteredRestaurants.filter(r => 
+                    r.name.toLowerCase().includes(searchInput) || 
+                    r.category.toLowerCase().includes(searchInput) ||
+                    r.description.toLowerCase().includes(searchInput)
                 );
             }
-            
-            return filtered;
-        }
 
-        // 정렬 함수
-        function sortRestaurants(restaurants) {
-            switch (currentSort) {
-                case 'popularity':
-                    return restaurants.sort((a, b) => b.popularity - a.popularity);
-                case 'reviews':
-                    return restaurants.sort((a, b) => b.reviews - a.reviews);
-                case 'rating':
-                    return restaurants.sort((a, b) => b.rating - a.rating);
-                case 'price':
-                    return restaurants.sort((a, b) => a.price - b.price);
-                default:
-                    return restaurants;
+            // Apply sorting
+            switch(sortFilter) {
+                case '평점순':
+                    filteredRestaurants.sort((a, b) => b.rating - a.rating);
+                    break;
+                case '리뷰순':
+                    filteredRestaurants.sort((a, b) => b.reviews - a.reviews);
+                    break;
+                case '가격순':
+                    filteredRestaurants.sort((a, b) => {
+                        const priceOrder = {'1만원 이하': 1, '1-2만원': 2, '2-3만원': 3, '3만원 이상': 4};
+                        return priceOrder[a.price] - priceOrder[b.price];
+                    });
+                    break;
+                default: // 인기순
+                    filteredRestaurants.sort((a, b) => {
+                        if (a.trending && !b.trending) return -1;
+                        if (!a.trending && b.trending) return 1;
+                        return b.reviews - a.reviews;
+                    });
             }
-        }
 
-        // 맛집 카드 생성 함수
-        function createRestaurantCard(restaurant, index) {
-            const badgeHtml = restaurant.badges ? restaurant.badges.map(badge => 
-                `<span class="trending-badge mr-2">${badge}</span>`
-            ).join('') : '';
-            
-            const rankHtml = index < 10 ? `<div class="restaurant-rank">${index + 1}</div>` : '';
-            
-            return `
-                <div class="restaurant-card bg-white rounded-lg shadow-lg card-hover relative" 
-                     data-category="${restaurant.category}" 
-                     data-price="${restaurant.price}" 
-                     data-rating="${restaurant.rating}" 
-                     data-location="${restaurant.location}"
-                     data-trending="${restaurant.trending}">
-                    ${rankHtml}
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-blue-800">${restaurant.name}</h3>
-                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">${restaurant.category}</span>
-                        </div>
-                        
-                        <div class="mb-3">
-                            ${badgeHtml}
-                        </div>
-                        
-                        <div class="flex items-center mb-3">
-                            <div class="flex text-yellow-400 mr-2">
-                                ${'★'.repeat(Math.floor(restaurant.rating))}${'☆'.repeat(5 - Math.floor(restaurant.rating))}
-                            </div>
-                            <span class="text-gray-600 font-medium">${restaurant.rating}점</span>
-                            <span class="ml-2 text-xs text-gray-500">(리뷰 ${restaurant.reviews.toLocaleString()}개)</span>
-                        </div>
-                        
-                        <p class="text-gray-600 mb-4">${restaurant.description}</p>
-                        
-                        <div class="space-y-3 text-sm mb-4">
-                            <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt text-red-500 mr-3 w-4"></i>
-                                <span>${restaurant.address}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-won-sign text-green-500 mr-3 w-4"></i>
-                                <span>${restaurant.specialMenu || `${restaurant.price.toLocaleString()}원`}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-clock text-blue-500 mr-3 w-4"></i>
-                                <span>${restaurant.hours}</span>
-                            </div>
-                            ${restaurant.phone ? `
-                            <div class="flex items-center">
-                                <i class="fas fa-phone text-purple-500 mr-3 w-4"></i>
-                                <span>${restaurant.phone}</span>
-                            </div>` : ''}
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-2">
-                            <a href="https://map.naver.com/v5/search/${encodeURIComponent(restaurant.name + ' 여수')}" target="_blank" 
-                               class="bg-green-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-green-600 transition-colors">
-                                <i class="fas fa-map mr-1"></i>네이버지도
-                            </a>
-                            <button onclick="showReviews('${restaurant.name} 여수')" 
-                                    class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
-                                <i class="fas fa-comment mr-1"></i>후기보기
-                            </button>
-                        </div>
+            container.innerHTML = filteredRestaurants.map(restaurant => `
+                <div class="bg-white rounded-lg shadow-md card-hover p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg">${restaurant.image} ${restaurant.name}</h4>
+                        ${restaurant.trending ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded">HOT</span>' : ''}
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">${restaurant.category}</span>
+                        <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded">${restaurant.price}</span>
+                    </div>
+                    <div class="flex items-center mb-2">
+                        <span class="text-yellow-500">${'⭐'.repeat(Math.floor(restaurant.rating))}</span>
+                        <span class="ml-1 font-bold">${restaurant.rating}</span>
+                        <span class="ml-1 text-gray-500">(${restaurant.reviews})</span>
+                    </div>
+                    <p class="text-sm text-gray-700 mb-3">${restaurant.description}</p>
+                    <div class="text-xs text-gray-500 mb-3">
+                        <p>📍 ${restaurant.address}</p>
+                        <p>📞 ${restaurant.phone}</p>
+                        <p>🕐 ${restaurant.hours}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="showLocation('${restaurant.address}')" class="flex-1 bg-green-500 text-white py-2 px-3 rounded text-sm hover:bg-green-600">
+                            🗺️ 네이버지도
+                        </button>
+                        <button onclick="showLocation('${restaurant.address}')" class="flex-1 bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600">
+                            📱 카카오맵
+                        </button>
                     </div>
                 </div>
-            `;
+            `).join('');
         }
 
-        // 맛집 렌더링 함수
-        function renderRestaurants() {
-            const grid = document.getElementById('restaurantGrid');
-            const loadingState = document.getElementById('loadingState');
-            
-            // 로딩 표시
-            loadingState.classList.remove('hidden');
-            grid.innerHTML = '';
-            
-            setTimeout(() => {
-                const filtered = filterRestaurants();
-                const sorted = sortRestaurants(filtered);
-                displayedRestaurants = sorted.slice(0, displayCount);
-                
-                const html = displayedRestaurants.map((restaurant, index) => 
-                    createRestaurantCard(restaurant, index)
-                ).join('');
-                
-                grid.innerHTML = html;
-                loadingState.classList.add('hidden');
-                
-                // 결과 수 업데이트
-                document.getElementById('resultCount').innerHTML = 
-                    `총 <span class="font-bold text-blue-600">${sorted.length}</span>개 맛집`;
-                
-                // 더보기 버튼 업데이트
-                const remaining = sorted.length - displayCount;
-                const remainingElement = document.getElementById('remainingCount');
-                const loadMoreSection = document.getElementById('loadMoreSection');
-                
-                if (remaining > 0) {
-                    remainingElement.textContent = remaining;
-                    loadMoreSection.classList.remove('hidden');
-                } else {
-                    loadMoreSection.classList.add('hidden');
-                }
-                
-                // 카드 애니메이션
-                const cards = document.querySelectorAll('.restaurant-card');
-                cards.forEach((card, index) => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    setTimeout(() => {
-                        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, index * 50);
-                });
-            }, 500);
-        }
+        function renderAttractions() {
+            const container = document.getElementById('attraction-list');
+            let filteredAttractions = [...attractions];
 
-        // 더보기 함수
-        function loadMoreRestaurants() {
-            displayCount += 20;
-            renderRestaurants();
-        }
+            // Apply filters
+            const categoryFilter = document.getElementById('attraction-category-filter').value;
+            const timeFilter = document.getElementById('attraction-time-filter').value;
+            const areaFilter = document.getElementById('attraction-area-filter').value;
+            const sortFilter = document.getElementById('attraction-sort-filter').value;
 
-        // 필터 초기화
-        function resetFilters() {
-            currentFilters = {
-                trending: 'all',
-                category: 'all',
-                price: 'all',
-                rating: 'all',
-                location: 'all',
-                search: ''
-            };
-            
-            document.getElementById('trendingFilter').value = 'all';
-            document.getElementById('categoryFilter').value = 'all';
-            document.getElementById('priceFilter').value = 'all';
-            document.getElementById('ratingFilter').value = 'all';
-            document.getElementById('locationFilter').value = 'all';
-            document.getElementById('searchInput').value = '';
-            
-            displayCount = 20;
-            renderRestaurants();
-        }
-
-        // 후기 보기 함수
-        function showReviews(restaurantName) {
-            const searchQuery = encodeURIComponent(restaurantName + ' 후기');
-            const url = `https://search.naver.com/search.naver?query=${searchQuery}`;
-            window.open(url, '_blank');
-        }
-
-        // 코스 업데이트 함수
-        function updateCourse() {
-            const courseType = document.getElementById('courseType').value;
-            const courseContent = document.getElementById('courseContent');
-            
-            let courseHtml = '';
-            
-            switch (courseType) {
-                case 'trending':
-                    courseHtml = `
-                        <div class="bg-white rounded-xl shadow-lg p-8">
-                            <div class="text-center mb-6">
-                                <h3 class="text-3xl font-bold text-red-600 mb-2">
-                                    🔥 6월 트렌드 코스
-                                </h3>
-                                <p class="text-gray-600">지금 가장 핫한 맛집들로 구성</p>
-                            </div>
-                            
-                            <div class="space-y-6">
-                                <div class="border-l-4 border-red-400 pl-6 py-4 bg-red-50 rounded-r-lg">
-                                    <h4 class="text-xl font-bold text-red-700 mb-2">🌅 조식 (09:00)</h4>
-                                    <div class="bg-white p-4 rounded-lg">
-                                        <h5 class="text-lg font-bold text-blue-800 mb-2">순이네밥상</h5>
-                                        <p class="text-gray-600 mb-2">네이버 플레이스 1위! 6월 최고 인기 맛집</p>
-                                        <span class="text-green-600 font-bold">갈치조림정식 15,000원</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="border-l-4 border-orange-400 pl-6 py-4 bg-orange-50 rounded-r-lg">
-                                    <h4 class="text-xl font-bold text-orange-700 mb-2">🍴 점심 (13:00)</h4>
-                                    <div class="bg-white p-4 rounded-lg">
-                                        <h5 class="text-lg font-bold text-purple-800 mb-2">정다운식당</h5>
-                                        <p class="text-gray-600 mb-2">돌산 오션뷰 대형매장, SNS에서 화제</p>
-                                        <span class="text-green-600 font-bold">암꽃게장정식 30,000원</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="border-l-4 border-purple-400 pl-6 py-4 bg-purple-50 rounded-r-lg">
-                                    <h4 class="text-xl font-bold text-purple-700 mb-2">☕ 디저트 (15:30)</h4>
-                                    <div class="bg-white p-4 rounded-lg">
-                                        <h5 class="text-lg font-bold text-pink-800 mb-2">모이핀</h5>
-                                        <p class="text-gray-600 mb-2">다이닝코드 카페 1위, 인스타 핫플</p>
-                                        <span class="text-green-600 font-bold">시그니처 디저트 12,000원</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="border-l-4 border-green-400 pl-6 py-4 bg-green-50 rounded-r-lg">
-                                    <h4 class="text-xl font-bold text-green-700 mb-2">🌙 저녁 (18:00)</h4>
-                                    <div class="bg-white p-4 rounded-lg">
-                                        <h5 class="text-lg font-bold text-blue-800 mb-2">꽃돌게장1번가</h5>
-                                        <p class="text-gray-600 mb-2">리뷰 3,000개 돌파! 대표 게장 맛집</p>
-                                        <span class="text-green-600 font-bold">꽃게정식 35,000원</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-8 p-6 bg-red-100 rounded-lg text-center">
-                                <h5 class="text-xl font-bold text-red-800 mb-2">🔥 6월 트렌드 코스 총 비용</h5>
-                                <p class="text-3xl font-bold text-red-600">92,000원</p>
-                                <p class="text-gray-600 mt-1">1인 기준, 최신 트렌드 반영</p>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                    
-                default:
-                    // 기본 표준 코스
-                    courseHtml = `
-                        <div class="bg-white rounded-xl shadow-lg p-8">
-                            <div class="text-center mb-6">
-                                <h3 class="text-3xl font-bold text-blue-600 mb-2">
-                                    🍽️ 표준 코스
-                                </h3>
-                                <p class="text-gray-600">검증된 인기 맛집들로 구성</p>
-                            </div>
-                            
-                            <div class="space-y-6">
-                                <div class="border-l-4 border-blue-400 pl-6 py-4 bg-blue-50 rounded-r-lg">
-                                    <h4 class="text-xl font-bold text-blue-700 mb-2">🌅 조식 (09:00)</h4>
-                                    <div class="bg-white p-4 rounded-lg">
-                                        <h5 class="text-lg font-bold text-blue-800 mb-2">로타리식당</h5>
-                                        <p class="text-gray-600 mb-2">구글 1위! 30년 전통 백반 전문점</p>
-                                        <span class="text-green-600 font-bold">백반 12,000원</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+            if (categoryFilter !== '전체') {
+                filteredAttractions = filteredAttractions.filter(a => a.category === categoryFilter);
             }
-            
-            courseContent.innerHTML = courseHtml;
+            if (timeFilter !== '전체') {
+                filteredAttractions = filteredAttractions.filter(a => a.time === timeFilter);
+            }
+            if (areaFilter !== '전체') {
+                filteredAttractions = filteredAttractions.filter(a => a.area === areaFilter);
+            }
+
+            // Apply sorting
+            switch(sortFilter) {
+                case '평점순':
+                    filteredAttractions.sort((a, b) => b.rating - a.rating);
+                    break;
+                case '거리순':
+                    // This would require geolocation implementation
+                    break;
+                default: // 인기순
+                    filteredAttractions.sort((a, b) => {
+                        if (a.trending && !b.trending) return -1;
+                        if (!a.trending && b.trending) return 1;
+                        return b.reviews - a.reviews;
+                    });
+            }
+
+            container.innerHTML = filteredAttractions.map(attraction => `
+                <div class="bg-white rounded-lg shadow-md card-hover p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg">${attraction.image} ${attraction.name}</h4>
+                        ${attraction.trending ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded">HOT</span>' : ''}
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        <span class="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded mr-2">${attraction.category}</span>
+                        <span class="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded">${attraction.time}</span>
+                    </div>
+                    <div class="flex items-center mb-2">
+                        <span class="text-yellow-500">${'⭐'.repeat(Math.floor(attraction.rating))}</span>
+                        <span class="ml-1 font-bold">${attraction.rating}</span>
+                        <span class="ml-1 text-gray-500">(${attraction.reviews})</span>
+                    </div>
+                    <p class="text-sm text-gray-700 mb-3">${attraction.description}</p>
+                    <div class="text-xs text-gray-500 mb-3">
+                        <p>📍 ${attraction.address}</p>
+                        <p>💰 ${attraction.price}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="showLocation('${attraction.address}')" class="flex-1 bg-green-500 text-white py-2 px-3 rounded text-sm hover:bg-green-600">
+                            🗺️ 위치보기
+                        </button>
+                        <button onclick="bookTicket('${attraction.name}')" class="flex-1 bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600">
+                            🎫 예약하기
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // 커뮤니티 관련 함수들
-        function initializeCommunity() {
-            const savedPosts = localStorage.getItem('yeosu_posts');
-            if (savedPosts) {
-                posts = JSON.parse(savedPosts);
-            } else {
-                posts = [
+        function generateCourse() {
+            const tripType = document.getElementById('trip-type').value;
+            const budget = document.getElementById('budget-range').value;
+            const style = document.getElementById('trip-style').value;
+
+            const courseDisplay = document.getElementById('course-display');
+            
+            // Sample course generation based on selections
+            let courses = [];
+            
+            if (style === '맛집투어') {
+                courses = [
                     {
-                        id: 1,
-                        category: 'new',
-                        title: '6월 신규 오픈! 랑고스 전문점',
-                        restaurantName: '랑고스 전문점',
-                        location: '전남 여수시 통제영3길 14-1',
-                        content: '헝가리 전통 음식 랑고스 전문점이 새로 오픈했어요! 호떡 같은 비주얼에 달콤쫄깃한 식감이 정말 좋습니다.',
-                        author: '맛집탐험가',
-                        rating: 4,
-                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                        likes: 25,
-                        comments: [
-                            { author: '여수토박이', content: '신기한 음식이네요! 꼭 가봐야겠어요', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) }
+                        day: 'Day 1',
+                        meals: [
+                            { time: '조식 (09:00)', place: '로타리식당', menu: '게장백반', price: '12,000원' },
+                            { time: '점심 (13:00)', place: '순이네밥상', menu: '갈치조림정식', price: '15,000원' },
+                            { time: '저녁 (18:00)', place: '꽃돌게장1번가', menu: '꽃게정식', price: '35,000원' }
                         ]
                     },
                     {
-                        id: 2,
-                        category: 'hidden',
-                        title: '현지인만 아는 진짜 숨은맛집 복춘식당',
-                        restaurantName: '복춘식당',
-                        location: '여수시 소호동',
-                        content: '성시경의 먹을텐데에도 나왔던 곳이에요. 할머니가 직접 해주시는 집밥 같은 반찬들이 정말 일품입니다. 관광객들은 잘 모르는 현지인 맛집이에요.',
-                        author: '여수현지인',
-                        rating: 5,
-                        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-                        likes: 42,
-                        comments: [
-                            { author: '여행자', content: '정보 감사합니다! 꼭 가봐야겠어요', createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
-                            { author: '맛집러버', content: '저도 다녀왔는데 정말 집밥 같아요', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) }
+                        day: 'Day 2',
+                        meals: [
+                            { time: '조식 (10:00)', place: '여수당', menu: '쑥아이스크림', price: '8,000원' },
+                            { time: '점심 (12:00)', place: '정다운식당', menu: '게장백반', price: '30,000원' }
                         ]
                     }
                 ];
-                savePosts();
+            } else if (style === '관광위주') {
+                courses = [
+                    {
+                        day: 'Day 1',
+                        attractions: [
+                            { time: '10:00', place: '아쿠아플라넷 여수', duration: '2-3시간', price: '39,000원' },
+                            { time: '14:00', place: '오동도', duration: '2-3시간', price: '무료' },
+                            { time: '17:00', place: '여수해상케이블카', duration: '1시간', price: '22,000원' }
+                        ]
+                    },
+                    {
+                        day: 'Day 2',
+                        attractions: [
+                            { time: '09:00', place: '향일암', duration: '반나절', price: '무료' },
+                            { time: '14:00', place: '이순신광장', duration: '1시간', price: '무료' }
+                        ]
+                    }
+                ];
+            } else { // 균형형
+                courses = [
+                    {
+                        day: 'Day 1',
+                        schedule: [
+                            { time: '09:00', type: '식사', place: '로타리식당', details: '게장백반 12,000원' },
+                            { time: '11:00', type: '관광', place: '아쿠아플라넷 여수', details: '2-3시간, 39,000원' },
+                            { time: '14:00', type: '식사', place: '순이네밥상', details: '갈치조림정식 15,000원' },
+                            { time: '16:00', type: '관광', place: '오동도', details: '2-3시간, 무료' },
+                            { time: '19:00', type: '식사', place: '꽃돌게장1번가', details: '꽃게정식 35,000원' }
+                        ]
+                    },
+                    {
+                        day: 'Day 2',
+                        schedule: [
+                            { time: '08:00', type: '관광', place: '향일암', details: '해돋이 명소, 무료' },
+                            { time: '10:00', type: '식사', place: '여수당', details: '쑥아이스크림 8,000원' },
+                            { time: '12:00', type: '관광', place: '여수해상케이블카', details: '1시간, 22,000원' },
+                            { time: '14:00', type: '식사', place: '정다운식당', details: '게장백반 30,000원' }
+                        ]
+                    }
+                ];
             }
-            renderPosts();
-            initializeStarRating();
-        }
 
-        function savePosts() {
-            localStorage.setItem('yeosu_posts', JSON.stringify(posts));
+            courseDisplay.innerHTML = courses.map(course => `
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h4 class="font-bold text-lg mb-4">${course.day}</h4>
+                    ${course.meals ? course.meals.map(meal => `
+                        <div class="flex items-center mb-3 p-3 bg-blue-50 rounded">
+                            <div class="font-semibold text-blue-600 w-24">${meal.time}</div>
+                            <div class="flex-1">
+                                <div class="font-medium">${meal.place}</div>
+                                <div class="text-sm text-gray-600">${meal.menu} - ${meal.price}</div>
+                            </div>
+                        </div>
+                    `).join('') : ''}
+                    ${course.attractions ? course.attractions.map(attraction => `
+                        <div class="flex items-center mb-3 p-3 bg-green-50 rounded">
+                            <div class="font-semibold text-green-600 w-24">${attraction.time}</div>
+                            <div class="flex-1">
+                                <div class="font-medium">${attraction.place}</div>
+                                <div class="text-sm text-gray-600">${attraction.duration} - ${attraction.price}</div>
+                            </div>
+                        </div>
+                    `).join('') : ''}
+                    ${course.schedule ? course.schedule.map(item => `
+                        <div class="flex items-center mb-3 p-3 ${item.type === '식사' ? 'bg-blue-50' : 'bg-green-50'} rounded">
+                            <div class="font-semibold ${item.type === '식사' ? 'text-blue-600' : 'text-green-600'} w-24">${item.time}</div>
+                            <div class="w-12 text-sm">${item.type === '식사' ? '🍽️' : '🏛️'}</div>
+                            <div class="flex-1">
+                                <div class="font-medium">${item.place}</div>
+                                <div class="text-sm text-gray-600">${item.details}</div>
+                            </div>
+                        </div>
+                    `).join('') : ''}
+                </div>
+            `).join('');
         }
 
         function renderPosts() {
-            const postsList = document.getElementById('postsList');
-            const filteredPosts = currentCategory === 'all' ? posts : posts.filter(post => post.category === currentCategory);
-            
-            postsList.innerHTML = filteredPosts.map(post => `
-                <div class="post-item bg-white rounded-lg shadow-lg p-6 cursor-pointer" onclick="openPostDetail(${post.id})">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center space-x-3">
-                            <span class="category-badge px-3 py-1 rounded-full text-sm font-medium ${getCategoryClass(post.category)}">
-                                ${getCategoryIcon(post.category)} ${getCategoryName(post.category)}
-                            </span>
-                            ${post.rating > 0 ? `<div class="flex text-yellow-400">${'⭐'.repeat(post.rating)}</div>` : ''}
-                        </div>
-                        <span class="text-gray-500 text-sm">${formatDate(post.createdAt)}</span>
+            const container = document.getElementById('posts-list');
+            container.innerHTML = posts.map(post => `
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg">${post.title}</h4>
+                        <span class="text-xs bg-gray-100 px-2 py-1 rounded">${post.category}</span>
                     </div>
-                    
-                    <h3 class="text-lg font-bold mb-2 text-gray-800">${post.title}</h3>
-                    
-                    ${post.restaurantName ? `<p class="text-blue-600 font-medium mb-1">🏪 ${post.restaurantName}</p>` : ''}
-                    ${post.location ? `<p class="text-gray-600 text-sm mb-2">📍 ${post.location}</p>` : ''}
-                    
-                    <p class="text-gray-700 mb-4 line-clamp-3">${post.content}</p>
-                    
-                    <div class="flex justify-between items-center text-sm text-gray-500">
-                        <span>👤 ${post.author}</span>
-                        <div class="flex space-x-4">
-                            <span onclick="event.stopPropagation(); toggleLike(${post.id})" class="like-btn cursor-pointer hover:text-red-500 transition-colors ${isLiked(post.id) ? 'liked text-red-500' : ''}">
-                                <i class="fas fa-heart mr-1"></i>${post.likes}
-                            </span>
-                            <span><i class="fas fa-comment mr-1"></i>${post.comments.length}</span>
-                        </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        ${post.author} • ${post.date} • ${post.restaurant} • ${'⭐'.repeat(post.rating)}
+                    </div>
+                    <p class="text-gray-700 mb-3">${post.content}</p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <button onclick="likePost(${post.id})" class="flex items-center space-x-1 hover:text-red-500">
+                            <i class="far fa-heart"></i>
+                            <span>${post.likes}</span>
+                        </button>
+                        <button class="ml-4 hover:text-blue-500">
+                            <i class="far fa-comment"></i>
+                            <span>댓글</span>
+                        </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function getCategoryClass(category) {
-            const classes = {
-                'new': 'bg-green-100 text-green-800',
-                'hidden': 'bg-blue-100 text-blue-800',
-                'review': 'bg-purple-100 text-purple-800',
-                'question': 'bg-yellow-100 text-yellow-800'
+        function submitPost() {
+            const title = document.getElementById('post-title').value;
+            const category = document.getElementById('post-category').value;
+            const content = document.getElementById('post-content').value;
+            const restaurant = document.getElementById('restaurant-name').value;
+            const rating = parseInt(document.getElementById('rating').value);
+
+            if (!title || !content) {
+                alert('제목과 내용을 입력해주세요.');
+                return;
+            }
+
+            const newPost = {
+                id: posts.length + 1,
+                title,
+                category,
+                content,
+                restaurant: restaurant || '미입력',
+                rating,
+                author: '익명',
+                date: new Date().toISOString().split('T')[0],
+                likes: 0
             };
-            return classes[category] || 'bg-gray-100 text-gray-800';
+
+            posts.unshift(newPost);
+            renderPosts();
+
+            // Reset form
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            document.getElementById('restaurant-name').value = '';
         }
 
-        function getCategoryIcon(category) {
-            const icons = {
-                'new': '🏪',
-                'hidden': '💎',
-                'review': '📝',
-                'question': '❓'
-            };
-            return icons[category] || '📌';
+        function likePost(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                post.likes++;
+                renderPosts();
+            }
         }
 
-        function getCategoryName(category) {
-            const names = {
-                'new': '신규 오픈',
-                'hidden': '숨은맛집',
-                'review': '후기',
-                'question': '질문'
-            };
-            return names[category] || '기타';
+        function showLocation(address) {
+            const encoded = encodeURIComponent(address);
+            window.open(`https://map.naver.com/v5/search/${encoded}`, '_blank');
         }
 
-        function formatDate(date) {
-            const now = new Date();
-            const diffMs = now - new Date(date);
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            const diffDays = Math.floor(diffHours / 24);
+        function bookTicket(attractionName) {
+            alert(`${attractionName} 예약 페이지로 이동합니다.`);
+        }
+
+        // Admin Functions
+        function toggleAdmin() {
+            const panel = document.getElementById('admin-panel');
+            isAdminMode = !isAdminMode;
+            panel.style.display = isAdminMode ? 'block' : 'none';
             
-            if (diffHours < 1) return '방금 전';
-            if (diffHours < 24) return `${diffHours}시간 전`;
-            if (diffDays < 7) return `${diffDays}일 전`;
-            return new Date(date).toLocaleDateString();
+            if (isAdminMode) {
+                renderAdminData();
+                renderStats();
+            }
         }
 
-        function filterPosts(category) {
-            currentCategory = category;
+        function showAdminTab(tabId) {
+            // Hide all admin content
+            document.querySelectorAll('.admin-content').forEach(content => {
+                content.style.display = 'none';
+            });
             
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.dataset.category === category) {
-                    tab.classList.add('active');
+            // Show selected content
+            document.getElementById(tabId).style.display = 'block';
+            
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.className = 'admin-tab-btn px-4 py-2 rounded bg-gray-300';
+            });
+            event.target.className = 'admin-tab-btn active px-4 py-2 rounded bg-blue-500 text-white';
+        }
+
+        function renderAdminData() {
+            // Restaurant admin list
+            const restaurantList = document.getElementById('restaurant-admin-list');
+            restaurantList.innerHTML = restaurants.map(restaurant => `
+                <div class="flex justify-between items-center p-3 border rounded">
+                    <div>
+                        <span class="font-medium">${restaurant.name}</span>
+                        <span class="text-sm text-gray-500 ml-2">(${restaurant.category})</span>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editItem('restaurant', ${restaurant.id})" class="text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteItem('restaurant', ${restaurant.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Attraction admin list
+            const attractionList = document.getElementById('attraction-admin-list');
+            attractionList.innerHTML = attractions.map(attraction => `
+                <div class="flex justify-between items-center p-3 border rounded">
+                    <div>
+                        <span class="font-medium">${attraction.name}</span>
+                        <span class="text-sm text-gray-500 ml-2">(${attraction.category})</span>
+                    </div>
+                    <div class="space-x-2">
+                        <button onclick="editItem('attraction', ${attraction.id})" class="text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteItem('attraction', ${attraction.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Categories
+            const restaurantCategories = document.getElementById('restaurant-categories');
+            restaurantCategories.innerHTML = categories.restaurant.map(cat => `
+                <div class="flex justify-between items-center p-2 border rounded">
+                    <span>${cat}</span>
+                    <button onclick="deleteCategory('restaurant', '${cat}')" class="text-red-500 text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            const attractionCategories = document.getElementById('attraction-categories');
+            attractionCategories.innerHTML = categories.attraction.map(cat => `
+                <div class="flex justify-between items-center p-2 border rounded">
+                    <span>${cat}</span>
+                    <button onclick="deleteCategory('attraction', '${cat}')" class="text-red-500 text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderStats() {
+            // Category distribution chart
+            const ctx1 = document.getElementById('categoryChart').getContext('2d');
+            const categoryData = {};
+            restaurants.forEach(r => {
+                categoryData[r.category] = (categoryData[r.category] || 0) + 1;
+            });
+
+            new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categoryData),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '맛집 카테고리 분포'
+                        }
+                    }
                 }
             });
-            
-            renderPosts();
-        }
 
-        function openPostModal() {
-            document.getElementById('postModal').classList.add('show');
-        }
+            // Rating distribution chart
+            const ctx2 = document.getElementById('ratingChart').getContext('2d');
+            const ratingData = {};
+            restaurants.forEach(r => {
+                const rating = Math.floor(r.rating);
+                ratingData[rating + '점'] = (ratingData[rating + '점'] || 0) + 1;
+            });
 
-        function closePostModal() {
-            document.getElementById('postModal').classList.remove('show');
-            document.getElementById('postForm').reset();
-            resetStarRating();
-        }
-
-        function openPostDetail(postId) {
-            const post = posts.find(p => p.id === postId);
-            if (!post) return;
-            
-            currentPostId = postId;
-            
-            const content = `
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <span class="category-badge px-3 py-1 rounded-full text-sm font-medium ${getCategoryClass(post.category)}">
-                            ${getCategoryIcon(post.category)} ${getCategoryName(post.category)}
-                        </span>
-                        ${post.rating > 0 ? `<div class="flex text-yellow-400">${'⭐'.repeat(post.rating)}</div>` : ''}
-                        <span class="text-gray-500 text-sm">${formatDate(post.createdAt)}</span>
-                    </div>
-                    
-                    <h2 class="text-2xl font-bold text-gray-800">${post.title}</h2>
-                    
-                    ${post.restaurantName ? `<p class="text-blue-600 font-medium text-lg">🏪 ${post.restaurantName}</p>` : ''}
-                    ${post.location ? `<p class="text-gray-600">📍 ${post.location}</p>` : ''}
-                    
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-gray-700 leading-relaxed whitespace-pre-line">${post.content}</p>
-                    </div>
-                    
-                    <div class="flex justify-between items-center pt-4 border-t">
-                        <span class="text-gray-600">👤 ${post.author}</span>
-                        <div class="flex space-x-4">
-                            <button onclick="toggleLike(${post.id})" class="like-btn px-4 py-2 rounded-lg transition-colors ${isLiked(post.id) ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'}">
-                                <i class="fas fa-heart mr-1"></i>${post.likes}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('postDetailContent').innerHTML = content;
-            renderComments(post.comments);
-            document.getElementById('postDetailModal').classList.add('show');
-        }
-
-        function closePostDetailModal() {
-            document.getElementById('postDetailModal').classList.remove('show');
-            currentPostId = null;
-        }
-
-        function renderComments(comments) {
-            const commentsList = document.getElementById('commentsList');
-            
-            if (comments.length === 0) {
-                commentsList.innerHTML = '<p class="text-gray-500 text-center py-4">아직 댓글이 없습니다.</p>';
-                return;
-            }
-            
-            commentsList.innerHTML = comments.map(comment => `
-                <div class="comment-item">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-medium text-gray-800">${comment.author}</span>
-                        <span class="text-gray-500 text-sm">${formatDate(comment.createdAt)}</span>
-                    </div>
-                    <p class="text-gray-700">${comment.content}</p>
-                </div>
-            `).join('');
-        }
-
-        function addComment() {
-            const author = document.getElementById('commentAuthor').value.trim();
-            const content = document.getElementById('commentContent').value.trim();
-            
-            if (!author || !content) {
-                alert('닉네임과 댓글 내용을 모두 입력해주세요.');
-                return;
-            }
-            
-            const post = posts.find(p => p.id === currentPostId);
-            if (!post) return;
-            
-            const newComment = {
-                author,
-                content,
-                createdAt: new Date()
-            };
-            
-            post.comments.push(newComment);
-            savePosts();
-            renderComments(post.comments);
-            renderPosts();
-            
-            document.getElementById('commentAuthor').value = '';
-            document.getElementById('commentContent').value = '';
-        }
-
-        function toggleLike(postId) {
-            const post = posts.find(p => p.id === postId);
-            if (!post) return;
-            
-            const likedPosts = JSON.parse(localStorage.getItem('yeosu_liked_posts') || '[]');
-            const isCurrentlyLiked = likedPosts.includes(postId);
-            
-            if (isCurrentlyLiked) {
-                post.likes--;
-                const index = likedPosts.indexOf(postId);
-                likedPosts.splice(index, 1);
-            } else {
-                post.likes++;
-                likedPosts.push(postId);
-            }
-            
-            localStorage.setItem('yeosu_liked_posts', JSON.stringify(likedPosts));
-            savePosts();
-            renderPosts();
-            
-            if (currentPostId === postId) {
-                openPostDetail(postId);
-            }
-        }
-
-        function isLiked(postId) {
-            const likedPosts = JSON.parse(localStorage.getItem('yeosu_liked_posts') || '[]');
-            return likedPosts.includes(postId);
-        }
-
-        function initializeStarRating() {
-            const stars = document.querySelectorAll('#starRating .star');
-            stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.dataset.rating);
-                    document.getElementById('postRating').value = rating;
-                    
-                    stars.forEach((s, index) => {
-                        if (index < rating) {
-                            s.classList.add('active');
-                        } else {
-                            s.classList.remove('active');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ratingData),
+                    datasets: [{
+                        label: '맛집 수',
+                        data: Object.values(ratingData),
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '평점별 맛집 분포'
                         }
-                    });
-                });
-            });
-        }
-
-        function resetStarRating() {
-            document.querySelectorAll('#starRating .star').forEach(star => {
-                star.classList.remove('active');
-            });
-            document.getElementById('postRating').value = 0;
-        }
-
-        function loadMorePosts() {
-            alert('현재는 모든 게시글이 표시되었습니다.');
-        }
-
-        // 이벤트 리스너 설정
-        document.addEventListener('DOMContentLoaded', function() {
-            // 필터 이벤트 리스너
-            document.getElementById('trendingFilter').addEventListener('change', function() {
-                currentFilters.trending = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            document.getElementById('categoryFilter').addEventListener('change', function() {
-                currentFilters.category = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            document.getElementById('priceFilter').addEventListener('change', function() {
-                currentFilters.price = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            document.getElementById('ratingFilter').addEventListener('change', function() {
-                currentFilters.rating = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            document.getElementById('locationFilter').addEventListener('change', function() {
-                currentFilters.location = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            document.getElementById('searchInput').addEventListener('input', function() {
-                currentFilters.search = this.value;
-                displayCount = 20;
-                renderRestaurants();
-            });
-            
-            // 정렬 버튼 이벤트 리스너
-            document.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentSort = this.dataset.sort;
-                    displayCount = 20;
-                    renderRestaurants();
-                });
-            });
-            
-            // 게시글 폼 이벤트 리스너
-            document.getElementById('postForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const newPost = {
-                    id: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1,
-                    category: document.getElementById('postCategory').value,
-                    title: document.getElementById('postTitle').value,
-                    restaurantName: document.getElementById('restaurantName').value,
-                    location: document.getElementById('restaurantLocation').value,
-                    content: document.getElementById('postContent').value,
-                    author: document.getElementById('postAuthor').value,
-                    rating: parseInt(document.getElementById('postRating').value),
-                    createdAt: new Date(),
-                    likes: 0,
-                    comments: []
-                };
-                
-                posts.unshift(newPost);
-                savePosts();
-                renderPosts();
-                closePostModal();
-                
-                alert('게시글이 성공적으로 등록되었습니다!');
-            });
-            
-            // 부드러운 스크롤
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
                     }
-                });
+                }
             });
-            
-            // 초기화
-            renderRestaurants();
-            initializeCommunity();
-            updateCourse();
-            
-            console.log('여수 맛집 가이드가 준비되었습니다!');
-        });
+        }
 
-        // CSS 추가
-        const style = document.createElement('style');
-        style.textContent = `
-            .category-tab.active {
-                background-color: #667eea;
-                color: white;
+        function showAddForm(type) {
+            editingItem = null;
+            const modal = document.getElementById('form-modal');
+            const title = document.getElementById('form-title');
+            const form = document.getElementById('item-form');
+
+            title.textContent = type === 'restaurant' ? '새 맛집 추가' : '새 관광지 추가';
+
+            if (type === 'restaurant') {
+                form.innerHTML = `
+                    <input type="text" id="edit-name" placeholder="맛집명" class="w-full border rounded px-3 py-2" required>
+                    <select id="edit-category" class="w-full border rounded px-3 py-2" required>
+                        ${categories.restaurant.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                    </select>
+                    <select id="edit-price" class="w-full border rounded px-3 py-2" required>
+                        <option value="1만원 이하">1만원 이하</option>
+                        <option value="1-2만원">1-2만원</option>
+                        <option value="2-3만원">2-3만원</option>
+                        <option value="3만원 이상">3만원 이상</option>
+                    </select>
+                    <input type="number" id="edit-rating" placeholder="평점 (1-5)" min="1" max="5" step="0.1" class="w-full border rounded px-3 py-2" required>
+                    <input type="number" id="edit-reviews" placeholder="리뷰 수" class="w-full border rounded px-3 py-2" required>
+                    <select id="edit-area" class="w-full border rounded px-3 py-2" required>
+                        <option value="시내">시내</option>
+                        <option value="돌산">돌산</option>
+                        <option value="소호동">소호동</option>
+                        <option value="웅천">웅천</option>
+                    </select>
+                    <input type="text" id="edit-address" placeholder="주소" class="w-full border rounded px-3 py-2" required>
+                    <input type="text" id="edit-phone" placeholder="전화번호" class="w-full border rounded px-3 py-2">
+                    <input type="text" id="edit-hours" placeholder="영업시간" class="w-full border rounded px-3 py-2">
+                    <textarea id="edit-description" placeholder="설명" class="w-full border rounded px-3 py-2 h-20"></textarea>
+                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2">
+                `;
+            } else {
+                form.innerHTML = `
+                    <input type="text" id="edit-name" placeholder="관광지명" class="w-full border rounded px-3 py-2" required>
+                    <select id="edit-category" class="w-full border rounded px-3 py-2" required>
+                        ${categories.attraction.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                    </select>
+                    <select id="edit-time" class="w-full border rounded px-3 py-2" required>
+                        <option value="1시간 이내">1시간 이내</option>
+                        <option value="2-3시간">2-3시간</option>
+                        <option value="반나절">반나절</option>
+                        <option value="하루종일">하루종일</option>
+                    </select>
+                    <input type="number" id="edit-rating" placeholder="평점 (1-5)" min="1" max="5" step="0.1" class="w-full border rounded px-3 py-2" required>
+                    <input type="number" id="edit-reviews" placeholder="리뷰 수" class="w-full border rounded px-3 py-2" required>
+                    <select id="edit-area" class="w-full border rounded px-3 py-2" required>
+                        <option value="시내">시내</option>
+                        <option value="돌산">돌산</option>
+                        <option value="거문도">거문도</option>
+                        <option value="기타">기타</option>
+                    </select>
+                    <input type="text" id="edit-address" placeholder="주소" class="w-full border rounded px-3 py-2" required>
+                    <input type="text" id="edit-price" placeholder="입장료" class="w-full border rounded px-3 py-2">
+                    <textarea id="edit-description" placeholder="설명" class="w-full border rounded px-3 py-2 h-20"></textarea>
+                    <input type="text" id="edit-image" placeholder="이모지" class="w-full border rounded px-3 py-2">
+                `;
             }
-            
-            .line-clamp-3 {
-                display: -webkit-box;
-                -webkit-line-clamp: 3;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
+
+            modal.style.display = 'block';
+        }
+
+        function editItem(type, id) {
+            const item = type === 'restaurant' ? restaurants.find(r => r.id === id) : attractions.find(a => a.id === id);
+            if (!item) return;
+
+            editingItem = { type, id };
+            showAddForm(type);
+
+            // Populate form with existing data
+            document.getElementById('edit-name').value = item.name;
+            document.getElementById('edit-category').value = item.category;
+            document.getElementById('edit-rating').value = item.rating;
+            document.getElementById('edit-reviews').value = item.reviews;
+            document.getElementById('edit-area').value = item.area;
+            document.getElementById('edit-address').value = item.address;
+            document.getElementById('edit-description').value = item.description;
+            document.getElementById('edit-image').value = item.image;
+
+            if (type === 'restaurant') {
+                document.getElementById('edit-price').value = item.price;
+                document.getElementById('edit-phone').value = item.phone;
+                document.getElementById('edit-hours').value = item.hours;
+            } else {
+                document.getElementById('edit-time').value = item.time;
+                document.getElementById('edit-price').value = item.price;
             }
-        `;
-        document.head.appendChild(style);
+
+            document.getElementById('form-title').textContent = type === 'restaurant' ? '맛집 수정' : '관광지 수정';
+        }
+
+        function saveItem() {
+            const name = document.getElementById('edit-name').value;
+            const category = document.getElementById('edit-category').value;
+            const rating = parseFloat(document.getElementById('edit-rating').value);
+            const reviews = parseInt(document.getElementById('edit-reviews').value);
+            const area = document.getElementById('edit-area').value;
+            const address = document.getElementById('edit-address').value;
+            const description = document.getElementById('edit-description').value;
+            const image = document.getElementById('edit-image').value;
+
+            if (!name || !category || !rating || !reviews || !area || !address) {
+                alert('필수 항목을 모두 입력해주세요.');
+                return;
+            }
+
+            if (editingItem) {
+                // Edit existing item
+                if (editingItem.type === 'restaurant') {
+                    const restaurant = restaurants.find(r => r.id === editingItem.id);
+                    restaurant.name = name;
+                    restaurant.category = category;
+                    restaurant.price = document.getElementById('edit-price').value;
+                    restaurant.rating = rating;
+                    restaurant.reviews = reviews;
+                    restaurant.area = area;
+                    restaurant.address = address;
+                    restaurant.phone = document.getElementById('edit-phone').value;
+                    restaurant.hours = document.getElementById('edit-hours').value;
+                    restaurant.description = description;
+                    restaurant.image = image;
+                } else {
+                    const attraction = attractions.find(a => a.id === editingItem.id);
+                    attraction.name = name;
+                    attraction.category = category;
+                    attraction.time = document.getElementById('edit-time').value;
+                    attraction.rating = rating;
+                    attraction.reviews = reviews;
+                    attraction.area = area;
+                    attraction.address = address;
+                    attraction.price = document.getElementById('edit-price').value;
+                    attraction.description = description;
+                    attraction.image = image;
+                }
+            } else {
+                // Add new item
+                if (document.getElementById('edit-phone')) {
+                    // Restaurant
+                    const newId = Math.max(...restaurants.map(r => r.id)) + 1;
+                    restaurants.push({
+                        id: newId,
+                        name,
+                        category,
+                        price: document.getElementById('edit-price').value,
+                        rating,
+                        reviews,
+                        area,
+                        address,
+                        phone: document.getElementById('edit-phone').value,
+                        hours: document.getElementById('edit-hours').value,
+                        description,
+                        image,
+                        trending: false
+                    });
+                } else {
+                    // Attraction
+                    const newId = Math.max(...attractions.map(a => a.id)) + 1;
+                    attractions.push({
+                        id: newId,
+                        name,
+                        category,
+                        time: document.getElementById('edit-time').value,
+                        rating,
+                        reviews,
+                        area,
+                        address,
+                        price: document.getElementById('edit-price').value,
+                        description,
+                        image,
+                        trending: false
+                    });
+                }
+            }
+
+            closeForm();
+            renderAdminData();
+            renderRestaurants();
+            renderAttractions();
+        }
+
+        function deleteItem(type, id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+
+            if (type === 'restaurant') {
+                const index = restaurants.findIndex(r => r.id === id);
+                if (index !== -1) {
+                    restaurants.splice(index, 1);
+                    renderRestaurants();
+                }
+            } else {
+                const index = attractions.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    attractions.splice(index, 1);
+                    renderAttractions();
+                }
+            }
+
+            renderAdminData();
+        }
+
+        function deleteCategory(type, category) {
+            if (!confirm(`"${category}" 카테고리를 삭제하시겠습니까?`)) return;
+
+            const index = categories[type].indexOf(category);
+            if (index !== -1) {
+                categories[type].splice(index, 1);
+                renderAdminData();
+            }
+        }
+
+        function closeForm() {
+            document.getElementById('form-modal').style.display = 'none';
+            editingItem = null;
+        }
+
+        // Initialize PWA features
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed');
+                    });
+            });
+        }
     </script>
 </body>
 </html>
     <script id="html_badge_script1">
         window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
-            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDk6uW1tW5FxuDJyB4PvkakhE0W3ybHDG1BxBsXLuaAFG3UCtVWTPKSx5GLFVQ6exRYpXqRhPhnoFHLPiB9qXppl4lTh6dsL7c%2B7ttx17l%2FE%2FDmAuRTBUvBV9cI7%2FEtCa8tey9REiuuzUgLHajwPnuSK9VCJWmzLF1HlffVzMBvmtp99CLEC7eUf8pqv02FxUivL1UhwIliMhq2sKuFZrRaoTD%2B0FIYXXqev4zFt1d48pMbKa%2FJdzeYh9Pv2ayxUwxI9KmCF3ufhXCqgLE1zOwKjDOyXzA7Y13oDCKTxvREAk9KSIyCwBywnQFwnvmee2aqaSXXoLMp28n1wtjnvxTwV8buMImGJYXFSrLHfG2rMJN6wX1vXe%2FNckLXw%2B6bYMst5MQmVPPHt9lIhoAgkHxQR8WykiMV5S%2Bp%2Bb5qn4I9EFccIA9jnzQDf5fWPibhn2i54uYO7yUWq40vCTLeu71Ex4lOMRTw%2FOvt6ueygs7LgC%2BN9na186bEdRJwURWWtHV1dw9NvTJzc6xY8iuY9SG2I%3D";
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDj5fzzrr3r%2Fw1RjejBhpGB9WM8FS3NuRkEWKnFI7tFuZTwlLmBHnByJQUThgl5xdJXcQ83EShHOPEil0j80UDY1oersUvRZ9aLyg9E06a2UAo%2BStE2y4COQgXXG1kAJnTO5gPG3JBZVnk1gpo%2Bay%2FrEY8jM0QaSICJl9rMXtuRZba0zY8vYzoEEJb4uR%2BAkDaX%2BYnW2lxTUsuP0BsQgGogS3ieGJe%2FR3DHq0N1RaUdOY9RyxrYH0kuUwfXYreiMFx6zr3e3XvSK0UTfXBBv1UWS%2Fiq9qniiL7vN%2BNmfpmXUYoBOEO81IT3WpsgL0tCgEv%2Bqkos2v06P9mW5RP8Mahg4GJiaDEROPXdsgLXc%2F8Q4Ymo7squSB2oRQpNr8NBOCbyE9qLfJnES7ixmrA1oQjEYfwDFTr2z21VIpo2a%2FO%2Bb5j56ypY%2BxIDudmaZk3ASsfZ8cfNIn3xATkt1Cb%2Bh8d9pKKX1ms0DAFyWWzXGFqSkrFad7vte9pvvXUHMqUcI2KPr%2B1sOu3e1umcec4TZyWuM%3D";
         window.__genspark_locale = "ko-KR";
-        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDk6uW1tW5FxuDJyB4PvkakhE0W3ybHDG1BxBsXLuaAFG3UCtVWTPKSx5GLFVQ6exRYpXqRhPhnoFHLPiB9qXppl4lTh6dsL7c+7ttx17l/E/DmAuRTBUvBV9cI7/EtCa8tey9REiuuzUgLHajwPnuSK9VCJWmzLF1HlffVzMBvmtp99CLEC7eUf8pqv02FxUivL1UhwIliMhq2sKuFZrRaoTD+0FIYXXqev4zFt1d48pMbKa/JdzeYh9Pv2ayxUwxI9KmCF3ufhXCqgLE1zOwKjDOyXzA7Y13oDCKTxvREAk9KSIyCwBywnQFwnvmee2aqaSXXoLMp28n1wtjnvxTwV8buMImGJYXFSrLHfG2rMJN6wX1vXe/NckLXw+6bYMst5MQmVPPHt9lIhoAgkHxQR8WykiMV5S+p+b5qn4I9EFccIA9jnzQDf5fWPibhn2i54uYO7yUWq40vCTLeu71Ex4lOMRTw/Ovt6ueygs7LgC+N9na186bEdRJwURWWtHV1dw9NvTJzc6xY8iuY9SG2I=";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDj5fzzrr3r/w1RjejBhpGB9WM8FS3NuRkEWKnFI7tFuZTwlLmBHnByJQUThgl5xdJXcQ83EShHOPEil0j80UDY1oersUvRZ9aLyg9E06a2UAo+StE2y4COQgXXG1kAJnTO5gPG3JBZVnk1gpo+ay/rEY8jM0QaSICJl9rMXtuRZba0zY8vYzoEEJb4uR+AkDaX+YnW2lxTUsuP0BsQgGogS3ieGJe/R3DHq0N1RaUdOY9RyxrYH0kuUwfXYreiMFx6zr3e3XvSK0UTfXBBv1UWS/iq9qniiL7vN+NmfpmXUYoBOEO81IT3WpsgL0tCgEv+qkos2v06P9mW5RP8Mahg4GJiaDEROPXdsgLXc/8Q4Ymo7squSB2oRQpNr8NBOCbyE9qLfJnES7ixmrA1oQjEYfwDFTr2z21VIpo2a/O+b5j56ypY+xIDudmaZk3ASsfZ8cfNIn3xATkt1Cb+h8d9pKKX1ms0DAFyWWzXGFqSkrFad7vte9pvvXUHMqUcI2KPr+1sOu3e1umcec4TZyWuM=";
     </script>
     
     <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
